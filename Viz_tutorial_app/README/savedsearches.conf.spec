@@ -1,1 +1,0 @@
-# Declare properties here
