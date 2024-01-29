@@ -57,24 +57,22 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	//Noah Warren's contributions:
 	/*
 		Primary source of the d3 visualization infrastructure.
-		Primary creator of the Tactic View.
-		
+		Primary creator of the Tactic View & its various features including MITRE priority sort and its format.
 	*/
 
 
 	//Danae O'Connor's contributions:
 	/*
 		Commenter, information compiler, and code cleaner
-		Primary contributor of the Timestamp View
-		Primary creator of the Splunk & D3 formmatter.
+		Primary contributor of the Timeline View
+		Primary creator of the Splunk & D3 formmatter tools.
 		
 	*/
 
-
 	//Bailey Hughes contributions:
 	/*
-		
-
+		Partial construction of the tool tip. 
+		- Was removed from the team in November of 2023.
 	*/
 
 
@@ -191,22 +189,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 		var Impact_Color = config[this.getPropertyNamespaceInfo().propertyNamespace+ 'Impact_Color'] || "#c71818";
 		
-		
-		//In progress variable - this is meant to allow the user the ability to set a limit on the total number of cards in a stack.
-		var maxCardStack = parseFloat(config[this.getPropertyNamespaceInfo().propertyNamespace+ 'axCardStack ']) || 15;
-		
-		//DEBUGGING!!! for the maxCardStack variable.
-		if (maxCardStack != 15)
-		{
-			console.log('Card stack = ', maxCardStack); //DEBUGGING!!!
-		}
 
 
-
-	    // Set height and width for the canvas of the display.
-	    var margins = { top: 10, right: 10, bottom: 60, left: 10 }; // Define margins
-	    var width = 1500 - margins.left - margins.right; // Calculate width of the chart area
-	    var height = 1065 - margins.top - margins.bottom; // Calculate height of the chart area
+	// Set height and width for the canvas of the display.
+		var margins = { top: 10, right: 10, bottom: 60, left: 10 }; // Define margins
+		var width = 1500 - margins.left - margins.right; // Calculate width of the chart area
+		var height = 1065 - margins.top - margins.bottom; // Calculate height of the chart area
 
 	//Containers:
 		var containerHeight = 500; // Sets height for on screen region
@@ -237,25 +225,25 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 		console.log('Time View is on - Value = ', viewTime_TF); //DEBUGGING!!!
 		console.log('Data from Splunk:', data); //DEBUGGING!!!
 
-	    var tacticsArr = []; //Array for holding the tactics that are in the data being called.
+		var tacticsArr = []; //Array for holding the tactics that are in the data being called.
 
 		//Grabbing and pushing the data into the tacticsArr
-	    for (var i = 0; i < data.rows.length; i++) 
+		for (var i = 0; i < data.rows.length; i++) 
 		{
-	        tacticsArr.push(data.rows[i][tacticField]);
+			tacticsArr.push(data.rows[i][tacticField]);
 		}
 
-	    console.log('tacticField: ', tacticField); //DEBUGGING!!!
-	    console.log(tacticsArr); //DEBUGGING!!!
-	    
+		console.log('tacticField: ', tacticField); //DEBUGGING!!!
+		console.log(tacticsArr); //DEBUGGING!!!
+
 		
 		//Tactics Names in accordance to MITRE
 	var tactics = ["reconnaissance", "resource-development", "initial-access", "execution", "persistence", "privilege-escalation", "defense-evasion", "credential-access", "discovery", "lateral-movement", "collection", "command-and-control", "exfiltration", "impact"];     
 			 
 			function findUnique(arr) {
-	            var uniqueTactics = [];
-	            for (var i = 0; i < arr.length; i++) {
-	                if (uniqueTactics.indexOf(arr[i]) === -1) {     // If indexOf returns -1, then there is no index for that value and it's not in the array yet.
+				var uniqueTactics = [];
+				for (var i = 0; i < arr.length; i++) {
+					if (uniqueTactics.indexOf(arr[i]) === -1) {     // If indexOf returns -1, then there is no index for that value and it's not in the array yet.
 	                    uniqueTactics.push(arr[i]);
 	                }
 	            }
@@ -278,7 +266,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 		.style("position", "relative");
 		
 		//Create background of the visualization
-	     var chart = container.append("svg")//d3.select(this.el)
+		var chart = container.append("svg")//d3.select(this.el)
 	         //.append("svg")
 	         .attr("width", width + margins.left + margins.right)
 	         .attr("height", height + margins.top + margins.bottom)
@@ -325,24 +313,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	             })
 	         })
 	     
-		 //Create the y axis associated with the graph
-	/*     var y = d3.scale.linear()
-	         .domain([0, maxCardStack])
-	         .range([height, 0]);
-	     
-	     chart.append("g")
-	         .call(d3.svg.axis()
-	             .scale(y)
-	             .orient("left"));
-	             
-	     chart.append("text")
-	         .attr("transform", "rotate(-90)")
-	         .attr("x", 0 - (height / 2))
-	         .attr("y", 0 - margins.left)
-	         .attr("dy", "1em")
-	         .style("text-anchor", "middle")
-	         .text("Technique Count");
-	*/ 
 
 
 		let tacticCount = {}; //Creates an empty dictionary to hold the cards.
@@ -360,7 +330,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 		 
 		//This actually attatches the bars to the view
 	    bars.append("rect")
-	     .style("fill", function(d)
+	     .style("fill", function(d) //Places color into the cards
 		 {
 
 			/*if (d[tacticField] == "reconnaissance")
@@ -642,8 +612,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	//	console.log('Tactic View is on True - Value = ', viewTime_TF); //DEBUGGING!!!
 	//	console.log('Data from Splunk:', data); //DEBUGGING!!!
 
-	//    console.log("Timestamp Array: ", timeTacticArr); //DEBUGGING!!!
-	//		console.log("Time Field: ", timeField); //DEBUGGING!!!
+	//	console.log("Timestamp Array: ", timeTacticArr); //DEBUGGING!!!
+	//	console.log("Time Field: ", timeField); //DEBUGGING!!!
 		
 		//Create the minimum time from the data, the maximum time from the data, and the time difference between the two.
 		var minTime = 0;
@@ -706,7 +676,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 		}
 		else if (Time_Diff <= 2629800000) //Less than or equal to a month
 		{
-			chunks = 7;
+			chunks = 4;
 		}
 		else	//Defaulted value for if none of the items work.
 		{
