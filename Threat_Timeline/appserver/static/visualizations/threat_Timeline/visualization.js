@@ -195,6 +195,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 		var margins = { top: 10, right: 10, bottom: 60, left: 10 }; // Define margins
 		var width = 1500 - margins.left - margins.right; // Calculate width of the chart area
 		var height = 1065 - margins.top - margins.bottom; // Calculate height of the chart area
+		var barHeight = 50;
 
 	//Containers:
 		var containerHeight = 500; // Sets height for on screen region
@@ -288,10 +289,10 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	 
 		//This creates the labels that go with the x axis on the background. Takes the tactic names and splits them across the "-" characters
 	     chart.append("g")
-	         .attr("transform", "translate(0," + height + ")")
+	         .attr("transform", "translate(0," + barHeight + ")")
 	         .call(d3.svg.axis()
 	             .scale(x)
-	             .orient("bottom"))
+	             .orient("top"))
 	             .selectAll('.tick text')
 	         .call(function(t){
 	             t.each(function(d){
@@ -300,7 +301,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                 self.text('');
 	                 self.append("tspan")
 	                     .attr("x", 0)
-	                     .attr("dy","1em")
+	                     .attr("dy","-2em")
 	                     .text(s[0]);
 	                 self.append("tspan")
 	                     .attr("x", 0)
@@ -325,7 +326,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	     .attr('transform', (d) => 
 		 {
 	        tacticCount[d[tacticField]] = (tacticCount[d[tacticField]] || 0) + 1
-	        return "translate(" + x(d[tacticField]) + "," + (height - 50 * tacticCount[d[tacticField]]) + ")";
+	        return "translate(" + x(d[tacticField]) + "," + (barHeight * tacticCount[d[tacticField]]) + ")";
 	     });
 		 
 		//This actually attatches the bars to the view
@@ -419,7 +420,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	     .data(uniqueTactics)
 	     .enter()
 	     .append('g')
-	     .attr('transform', (d) => {        return "translate(" + x(d) + "," + height + ")";    });
+	     .attr('transform', (d) => {        return "translate(" + x(d) + "," + (barHeight - 6) + ")";    });
 	     coloredBars.append("rect")
 	     .style("opacity", 1)
 	     /*.style("stroke", "black")
@@ -488,6 +489,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	    .style("border-radius", "5px")
 	    .style("padding", "10px");
 
+	chart.on("mousemove", function()
+	{
+		var mousePos = d3.mouse(this);
+		
+		tooltip.style("left", + (mousePos[0] + 50) + "px")
+		.style("top", + (mousePos[1] + 50) + "px");
+	});
+
 
 	bars.on("mouseover", function(d) 
 	{
@@ -496,11 +505,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 			.style("opacity", 0.9);
 
 		tooltip.html(d[titleField] + "<br>" + d[tacticField] + "<br>" + d[techniqueField]
-		 + " - " + d[techniqueIdField]  + "<br>" + d[descriptionField])
+		 + " - " + d[techniqueIdField]  + "<br>" + d[descriptionField]  + "<br>" + d[timeField])
 			//.style("left", (d3.event.pageX) + "px")
 			//.style("top", (d3.event.pageY - 28) + "px")
-			.style("left", 100 + "px")
-			.style("top", 250 + "px")
+			//.style("left", 100 + "px")
+			//.style("top", 250 + "px")
 			.style("color", "black")
 	})
 
@@ -563,7 +572,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	     .style("font-size", "9px")
 	     .style("fill", "black");
 
-	 container.node().scrollTop = container.node().scrollHeight;		//	This ensures that the scrollbar starts at the bottom of the visualization
+	 //container.node().scrollTop = container.node().scrollHeight;		//	This ensures that the scrollbar starts at the bottom of the visualization
 
 	} // END of Tactic View
 
