@@ -1,16 +1,34 @@
 /* Formatting for text element*/
-.meter-center-text {
+/* CSS rules for visualization. */
+
+
+.title-form{
+	font-size: 12px;
+	font-family: Arial;
+}
+
+.body-form{
+	font-size: 9px;
+	font-family: Arial;
+}
+
+.technique-form{
+	font-size: 10px;
+	font-family: Arial;
+}
+
+
+
+
+/*.meter-center-text {
     font-size: 40px;
     font-weight: 200;
     font-family: "Helvetica Neue", Helvetica, sans-serif;
-}
+}*/
  
 /* Center the main SVG in the page */
 .splunk-radial-meter svg {
     display: block;
     margin: auto;
-}/*
- * CSS rules for visualization.
- * Class namespacing is good practice.
- */
+}
 

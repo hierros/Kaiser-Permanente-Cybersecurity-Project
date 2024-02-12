@@ -1,7 +1,11 @@
-# Declare properties here
+# Created by Danae O'Connor
+# Properties of selections are declared here
 
+#Default data types for the Visualization selection.
 display.visualization.custom.Threat_Timeline.threat_Timeline.viewTime_TF = <string>
-display.visualization.custom.Threat_Timeline.threat_Timelinew.maxCardStack = <float>
+
+
+#Default data types for Colors for Tactic Coloration
 display.visualization.custom.Threat_Timeline.threat_Timeline.Recon_Color = <string> 
 display.visualization.custom.Threat_Timeline.threat_Timeline.ReSrs_Color = <string>
 display.visualization.custom.Threat_Timeline.threat_Timeline.InAccess_Color = <string>
