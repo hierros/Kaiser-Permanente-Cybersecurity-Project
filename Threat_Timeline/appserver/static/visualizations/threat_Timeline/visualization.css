@@ -1,10 +1,11 @@
 /* Formatting for text element*/
 /* CSS rules for visualization. */
-
+/* Created by Danae.*/
 
 .title-form{
 	font-size: 12px;
 	font-family: Arial;
+	font-weight: 500;
 }
 
 .body-form{
@@ -17,7 +18,11 @@
 	font-family: Arial;
 }
 
-
+.tooltip-form{
+	font-size: 12px;
+	font-family: Arial;
+	
+}
 
 
 /*.meter-center-text {

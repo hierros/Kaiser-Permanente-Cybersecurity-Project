@@ -19,94 +19,103 @@
 
 <!-- This is the formatter for the Colors of the tactic view -->
 
-<form class="splunk-formatter-section" section-label="Color Control">
+<form class="splunk-formatter-section" section-label="Primary Colors">
     <!-- Each control group is a color selector per tactic. Labels the tactic, puts a color selection and puts the default color in the color selection. -->
 	
-	<splunk-control-group label = "Reconnaissance Color:">
+
+	<splunk-control-group label="Credential Access:">
+		<splunk-color-picker name="{{VIZ_NAMESPACE}}.CredAccess_Color" value = "#ff9595">
+			<splunk-color></splunk-color>
+		</splunk-color-picker>
+	</splunk-control-group>
+
+	<splunk-control-group label="Discovery:">
+		<splunk-color-picker name="{{VIZ_NAMESPACE}}.Discov_Color" value = "#ff6e6b">
+			<splunk-color>#ff6e6b</splunk-color>
+		</splunk-color-picker>
+	</splunk-control-group>
+
+	<splunk-control-group label="Lateral Movement:">
+		<splunk-color-picker name="{{VIZ_NAMESPACE}}.LatMove_Color" value = "#ff5753">
+			<splunk-color>#ff5753</splunk-color>
+		</splunk-color-picker>
+	</splunk-control-group>
+
+	<splunk-control-group label="Collection:">
+		<splunk-color-picker name="{{VIZ_NAMESPACE}}.Collect_Color" value = "#fe3e39">
+			<splunk-color>#fe3e39</splunk-color>
+		</splunk-color-picker>
+	</splunk-control-group>
+
+	<splunk-control-group label="Command and Control:">
+		<splunk-color-picker name="{{VIZ_NAMESPACE}}.ComNCon_Color" value = "#fc0607">
+			<splunk-color>#fc0607</splunk-color>
+		</splunk-color-picker>
+	</splunk-control-group>
+
+	<splunk-control-group label="Exfiltration:">
+		<splunk-color-picker name="{{VIZ_NAMESPACE}}.Exfilt_Color" value = "#db0202">
+			<splunk-color>#db0202</splunk-color>
+		</splunk-color-picker>
+	</splunk-control-group>
+
+	<splunk-control-group label="Impact:">
+		<splunk-color-picker name="{{VIZ_NAMESPACE}}.Impact_Color" value = "#c71818">
+			<splunk-color>#c71818</splunk-color>
+		</splunk-color-picker>		
+	</splunk-control-group>
+
+</form>
+
+<form class="splunk-formatter-section" section-label="Secondary Colors">
+    <!-- Each control group is a color selector per tactic. Labels the tactic, puts a color selection and puts the default color in the color selection. -->
+
+
+	<splunk-control-group label = "Reconnaissance:">
 		<splunk-color-picker name="{{VIZ_NAMESPACE}}.Recon_Color" value = "#f9e98e">
 			<splunk-color>#f9e98e</splunk-color>
 		</splunk-color-picker>
 	</splunk-control-group>
 
-	<splunk-control-group label="Resource Development Color:">
+
+	<splunk-control-group label="Resource Development:">
 		<splunk-color-picker name="{{VIZ_NAMESPACE}}.ReSrs_Color" value = "#ffd060">
 			<splunk-color>#ffd060</splunk-color>
 		</splunk-color-picker>
 	</splunk-control-group>
 
 
-	<splunk-control-group label="Initial Access Color:">
+	<splunk-control-group label="Initial Access:">
 		<splunk-color-picker name="{{VIZ_NAMESPACE}}.InAccess_Color" value = "#ffc336">
 				<splunk-color>#ffc336</splunk-color>
 		</splunk-color-picker>
 	</splunk-control-group>
 
 
-	<splunk-control-group label="Execution Color:">
+	<splunk-control-group label="Execution:">
 		<splunk-color-picker name="{{VIZ_NAMESPACE}}.Execute_Color" value = "#ff9946">
 			<splunk-color>#ff9946</splunk-color>
 		</splunk-color-picker>
 	</splunk-control-group>
 
-	<splunk-control-group label="Persistence Color:">
+	<splunk-control-group label="Persistence:">
 		<splunk-color-picker name="{{VIZ_NAMESPACE}}.Persist_Color" value = "#f28123">
 			<splunk-color>#f28123</splunk-color>
 		</splunk-color-picker>
 	</splunk-control-group>
 
 
-	<splunk-control-group label="Privilege Escalation Color:">
+	<splunk-control-group label="Privilege Escalation:">
 		<splunk-color-picker name="{{VIZ_NAMESPACE}}.PrivEscal_Color" value = "#e06e11">
 			<splunk-color>#e06e11</splunk-color>
 		</splunk-color-picker>
 	</splunk-control-group>
 		
-	<splunk-control-group label="Defense Evasion Color:">
+	<splunk-control-group label="Defense Evasion:">
 		<splunk-color-picker name="{{VIZ_NAMESPACE}}.DefceEvad_Color" value = "#d1580d">
 			<splunk-color>#d1580d</splunk-color>
 		</splunk-color-picker>
 	</splunk-control-group>
 
-	<splunk-control-group label="Credential Access Color:">
-		<splunk-color-picker name="{{VIZ_NAMESPACE}}.CredAccess_Color" value = "#ff9595">
-			<splunk-color></splunk-color>
-		</splunk-color-picker>
-	</splunk-control-group>
-
-	<splunk-control-group label="Discovery Color:">
-		<splunk-color-picker name="{{VIZ_NAMESPACE}}.Discov_Color" value = "#ff6e6b">
-			<splunk-color>#ff6e6b</splunk-color>
-		</splunk-color-picker>
-	</splunk-control-group>
-
-	<splunk-control-group label="Lateral Movement Color:">
-		<splunk-color-picker name="{{VIZ_NAMESPACE}}.LatMove_Color" value = "#ff5753">
-			<splunk-color>#ff5753</splunk-color>
-		</splunk-color-picker>
-	</splunk-control-group>
-
-	<splunk-control-group label="Collection Color:">
-		<splunk-color-picker name="{{VIZ_NAMESPACE}}.Collect_Color" value = "#fe3e39">
-			<splunk-color>#fe3e39</splunk-color>
-		</splunk-color-picker>
-	</splunk-control-group>
-
-	<splunk-control-group label="Command and Control Color:">
-		<splunk-color-picker name="{{VIZ_NAMESPACE}}.ComNCon_Color" value = "#fc0607">
-			<splunk-color>#fc0607</splunk-color>
-		</splunk-color-picker>
-	</splunk-control-group>
-
-	<splunk-control-group label="Exfiltration Color:">
-		<splunk-color-picker name="{{VIZ_NAMESPACE}}.Exfilt_Color" value = "#db0202">
-			<splunk-color>#db0202</splunk-color>
-		</splunk-color-picker>
-	</splunk-control-group>
-
-	<splunk-control-group label="Impact Color:">
-		<splunk-color-picker name="{{VIZ_NAMESPACE}}.Impact_Color" value = "#c71818">
-			<splunk-color>#c71818</splunk-color>
-		</splunk-color-picker>		
-	</splunk-control-group>
 
 </form>

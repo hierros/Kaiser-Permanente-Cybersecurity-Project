@@ -3,7 +3,7 @@
 //Initial Design Templates by: Splunk  
 //Other Contributors: D3 - D3.js version 3.3.2, Copyright © 2012, Michael Bostock 
 //			
-// Last Updated: 2-6-2024
+// Last Updated: 2-11-2024
 // Program Purpose:
 //
 // Current Bugs:
@@ -171,9 +171,10 @@ updateView: function(data, config) {
 //Containers heights and widths to detrmine other items such as scroll-bars and placements :
 	var containerHeight = 500; // Sets height for on screen region
 	var containerWidth = 1500; // Sets width for on screen region
-	var cardHeight = 50; // Card height automatically set to 50 px. This helps determine vertical placements in columns.
+	var cardHeight = 65; // Card height automatically set to 50 px. This helps determine vertical placements in columns.
 	var barHeight = 50; // Sets the height of the bar of the x-axis on the Tactic View. 
 	var cardWidth = 70; // Card width automatically set to 70 px. This helps determine the horizontal placement.
+
 
 // --- XXXX --- //
 
@@ -252,8 +253,7 @@ if(viewTime_TF === "No") // START of Tactic View
 		.attr("width", width + margins.left + margins.right)
 		.attr("height", height + margins.top + margins.bottom)
 		.append("g")
-		.attr("transform",
-			"translate(" + margins.left + "," + margins.top + ")");
+		.attr("transform", "translate(" + margins.left + "," + margins.top + ")");
 
 	//Creates the color and other attributes of the visualization background
 	chart.append("rect")
@@ -266,7 +266,14 @@ if(viewTime_TF === "No") // START of Tactic View
 	//Create the x axis associated with the view on the background
 	var x = d3.scale.ordinal()
 		.domain(uniqueTactics)
-		.rangeRoundBands([0, width], .4);
+		.rangeRoundBands([0, width], .15); //controls the size of the x-axis 
+		//.rangeRoundPoints([0, width]); //controls the size of the x-axis 
+ 
+
+ //cardWidth = x.rangeBand();
+ console.log("Range band:", x.rangeBand());//DEBUGGING!!!
+ console.log("The range:", x.range());
+ console.log("Range band chunks:", x.rangeBand()/4);//DEBUGGING!!!
  
 	//This creates the labels that go with the x axis on the background. Takes the tactic names and splits them across the "-" characters
 	chart.append("g")
@@ -278,11 +285,11 @@ if(viewTime_TF === "No") // START of Tactic View
 		.call(function(t){
 			t.each(function(d){
 				var self = d3.select(this);
-				var s = self.text().split("-"); //This splits the titles of the area on the spaces associated with them
+				var s = self.text().split("-"); //This splits the titles of the area on the spaces associated with them 
 				self.text('');
 				self.append("tspan")
 					.attr("x", 0)
-					.attr("dy","-2em")
+					.attr("dy","-2.5em")
 					.text(s[0]);
 				self.append("tspan")
 					.attr("x", 0)
@@ -300,14 +307,14 @@ if(viewTime_TF === "No") // START of Tactic View
 		.data(uniqueTactics)
 		.enter()
 		.append('g')
-		.attr('transform', (d) => {      
-			return "translate(" + x(d) + "," + (barHeight - 6) + ")";
+		.attr('transform', (d) => {
+			return "translate(" + (x(d) + x.rangeBand()/4 ) + "," + (barHeight - 6) + ")"; //Aligns the cards and the colored bars together. More information at the bars.append item below.
 			});
 
 	coloredBars.append("rect")
 		.style("opacity", 1)
-		.attr("width", x.rangeBand())
-		.attr("height", 6)
+		.attr("width", cardWidth) 	//Uses the card width to make the colored part of the x-axis.
+		.attr("height", 6) 			//This is the height of the x-axis.
 		.style("fill", function(d)
 		{//Fills in the color of the bars.
 			if (d == "reconnaissance")
@@ -368,13 +375,21 @@ if(viewTime_TF === "No") // START of Tactic View
 		.append('g')
 		.attr('transform', (d) => {
 			tacticCount[d[tacticField]] = (tacticCount[d[tacticField]] || 0) + 1
-			return "translate(" + x(d[tacticField]) + "," + (barHeight * tacticCount[d[tacticField]]) + ")";
+console.log("item put into translate for x", x(d[tacticField]));//DEBUGGING!!!
+console.log("data item", d[tacticField]);//DEBUGGING!!!
+
+			//The return statement makes the following position placements:
+			//x of the box = the placement of the tacticField as determined by the rangeRoundBands() above in the x-axis plus 1/4th of the rangeBand alloted to "center" the box.
+			//y of the box = the cardHeight * its stack placement determined by the tacticCount minus the difference between (cardHeight - barHeight) to attact the card-stack to the x-axis.
+			//- Created by Danae.
+			return "translate(" + (x(d[tacticField]) + x.rangeBand()/4 ) + "," + (cardHeight * tacticCount[d[tacticField]] - (cardHeight - barHeight)) + ")";
+//			return "translate(" + x(d[tacticField]) + "," + (barHeight * tacticCount[d[tacticField]]) + ")"; //Base created by Noah!
 		});
 
 
 	//This actually attatches the bars to the view. - Created by Noah.
 	bars.append("rect")
-		.style("fill", function(d) //Places color into the cards - Created by Danae.
+		/*.style("fill", function(d) //Places color into the cards - Created by Danae.
 		{
 			if (d[tacticField] == "credential-access")
 			{
@@ -414,26 +429,32 @@ if(viewTime_TF === "No") // START of Tactic View
 			{
 				 return "white";
 			}
-		 })
-		 .style("opacity", 0)
-		 .style("stroke", "black")
-		 .style("stroke-width", 1)
-		 .attr("width", x.rangeBand())
-		 .attr("height", cardHeight);
+		})*/
+		.style("opacity", 0) //This controls the opacity of the above color which acts as the back of the card.
+		//.style("stroke", "black") //This controls the border of the cards - primarily used for debugging.
+		//.style("stroke-width", 1)
+		//.style("border", "solid")
+		//.style("border-width", "1px")
+		//.style("border-radius", "5px")
+		.attr("width", cardWidth)
+		.attr("height", cardHeight);
+		
 
 
 	//This is the tool tip to give information about the attack given the location of the item. - Created by Noah.
 	var tooltip = d3.select(this.el)
 		.append("div")
-		.attr("class", "tooltip")
 		.style("opacity", 0)
-		.attr("class", "tooltip")
+		.attr("class", "tooltip") //Makes the tooltip appear
+		//.attr("class", "tooltip-form") //Makes the CSS call and removes the tooltip entirely - Do NOT USE!
 		.style("background-color", "white")
 		.style("border", "solid")
 		.style("border-width", "1px")
 		.style("border-radius", "5px")
+		.style("width", "700px") //Added by Noah
 		.style("padding", "10px");
 
+/*
 	//While on the chart - track the mouse position and show the tooltip. - Created by Noah
 	chart.on("mousemove", function()
 	{
@@ -453,6 +474,8 @@ if(viewTime_TF === "No") // START of Tactic View
 			tooltip.html(d[titleField] + "<br>"  + d[techniqueIdField]
 			 + " - " + d[techniqueField] + "<br>" + d[descriptionField] + "<br>" + d[timeField])
 				.style("color", "black")
+				//Later tests to see if multiple items can be chained together for the bold title, larger technique, and normal description
+				
 		})
 
 	//When the mouse goes off the card - turns the card off by reducing opacity.
@@ -462,6 +485,44 @@ if(viewTime_TF === "No") // START of Tactic View
 			.duration(250)
 			.style("opacity", 0);
 	});
+*/
+	//Tooltip - fixed section -- Created by Noah
+	tooltip.append("text")
+	.text("x")
+    .attr("x", 490) // Adjust as needed
+    .attr("y", 10) 
+	.style("cursor", "pointer")
+	.on("click", function() {
+		tooltip.style("display", "none"); // Hides the tooltip
+	});
+
+
+
+	bars.on("click", function(d) 
+	{
+		tooltip.transition()
+			.duration(200)
+			.style("opacity", 0.9)
+			.style("left", "50px")
+			.style("top", "75px");
+
+		tooltip.html( //Modified by Danae.
+					"<font size=" + "3" + "><b><i>" + d[titleField] + "</i></b> </font>" + "<br>"  //Sets up the title font-size and special features
+					+ "<font size=" + "2" + ">" + d[techniqueIdField] + " - " + d[techniqueField] + "</font>" + "<br>" //Sets up the technique items font-size and special features.
+					//+ "_______ <br>" 				// A line break of underscores.
+					+ d[descriptionField] + "<br>" 	//Sets up the items for the description
+					+ d[timeField]					//Sets up the items for the description
+					
+					)
+			.style("color", "black")
+		
+		tooltip.style("display", "block");
+	});
+	
+	tooltip.on("click", function(d)
+	{
+		tooltip.style("display", "none");
+	});
 
 
 	bars.append("text")
@@ -469,12 +530,36 @@ if(viewTime_TF === "No") // START of Tactic View
 		 .text(function(d) {
 			 return d[titleField];
 		 })
-		.attr("x", x.rangeBand() / 2)
-		.attr("y", 10)
-		.style("text-anchor", "left")
+//		.attr("x", cardWidth / 2) //Original call to place the Title data onto the top of the card.
+		.attr("x", 0)	//Sets the original x position to 0.
+		.attr("y", 10)	//Sets the original y position to 10.
+		.attr("dx", 5)	//Sets the offset of x to 5. - Created by Danae
+		.attr("dy", 2)	//Sets the offset of y to 2. - Created by Danae
+		//.style("text-anchor", "left")
 		.attr("class", "title-form") // CSS call - Created by Danae
 		//.style("font-size", "9px")
+		.style("text-align", "center")
 		.style("fill", "black");
+
+
+
+/*	var textBars = bars.append("div")
+		.attr("x", 0)
+		.attr("y", 15)
+		.style("fill", "black")
+		.attr("class", "technique-form");
+		//.text(function(d) { return d[techniqueField]; }); // One method tried for adding text
+		textBars.html(function(d) {
+			return d[techniqueField]; // Another attempted method, uses html to append the text
+		}); */
+	// Append text to each bar container, currently commented out to attempt text wrapping
+	/*
+	textBars.append("text")
+		.attr("class", "technique-form")
+		.text(function(d) { return d[techniqueField]; });
+	*/
+
+
 
 	bars.append("text")
 		.text(function(d) {
@@ -489,30 +574,36 @@ if(viewTime_TF === "No") // START of Tactic View
 				self.text('');
 				self.append("tspan")
 					.attr("x", 0)
+					.attr("dx", cardWidth * 0.1) //Sets the offset of the technique that acts as padding to 0.1 of the cardWidth - Created by Danae
 					.attr("dy","1em")
 					.text(s[0])
 				self.append("tspan")
 					.attr("x", 0)
+					.attr("dx", cardWidth * 0.1) 
 					.attr("dy","1em")
 					.text(s[1])
 				self.append("tspan")
 					.attr("x", 0)
+					.attr("dx", cardWidth * 0.1)
 					.attr("dy","1em")
 					.text(s[2])
 				if (s[3] != undefined) {
 					self.append("tspan")
 						.attr("x", 0)
+						.attr("dx", cardWidth * 0.1)
 						.attr("dy","1em")
 						.text("...");
 				}
 			})
 		})
-		.attr("x", x.rangeBand() / 2)
+		.attr("x", cardWidth / 2)
 		.attr("y", 15)
+		.attr("dx", cardWidth * 0.1) //Sets the offset of the first technique item to act as padding to 0.1 of the cardWidth - Created by Danae
 		.style("text-anchor", "left")
 		.attr("class","technique-form") //Applies CSS - Created by Danae.
 		//style("font-size", "9px")
 		.style("fill", "black");
+
 
 //container.node().scrollTop = container.node().scrollHeight;		//	This ensures that the scrollbar starts at the bottom of the visualization
 
