@@ -173,7 +173,7 @@ updateView: function(data, config) {
 	var containerWidth = 1500; // Sets width for on screen region
 	var cardHeight = 65; // Card height automatically set to 50 px. This helps determine vertical placements in columns.
 	var barHeight = 50; // Sets the height of the bar of the x-axis on the Tactic View. 
-	var cardWidth = 70; // Card width automatically set to 70 px. This helps determine the horizontal placement.
+	var cardWidth = 85; // Card width automatically set to 70 px. This helps determine the horizontal placement.
 
 
 // --- XXXX --- //
@@ -454,7 +454,7 @@ console.log("data item", d[tacticField]);//DEBUGGING!!!
 		.style("width", "700px") //Added by Noah
 		.style("padding", "10px");
 
-/*
+/*  // Code for the old tooltip
 	//While on the chart - track the mouse position and show the tooltip. - Created by Noah
 	chart.on("mousemove", function()
 	{
@@ -486,17 +486,17 @@ console.log("data item", d[tacticField]);//DEBUGGING!!!
 			.style("opacity", 0);
 	});
 */
-	//Tooltip - fixed section -- Created by Noah
-	tooltip.append("text")
-	.text("x")
-    .attr("x", 490) // Adjust as needed
-    .attr("y", 10) 
-	.style("cursor", "pointer")
-	.on("click", function() {
-		tooltip.style("display", "none"); // Hides the tooltip
+	var closeButton = tooltip.append("div") // Initial tooltip creation for before card is generated. May not be necessary, but needs testing
+	.style("position", "absolute")
+	.style("right", "10px")
+	.style("top", "10px")
+	.html("x")
+	.on("click", function(d) 
+	{
+		tooltip.style("display", "none");
 	});
 
-
+	//console.log("Close button appended:", closeButton.node());  // Was used for debuggging issues with appending the close button to the tooltip
 
 	bars.on("click", function(d) 
 	{
@@ -506,6 +506,7 @@ console.log("data item", d[tacticField]);//DEBUGGING!!!
 			.style("left", "50px")
 			.style("top", "75px");
 
+
 		tooltip.html( //Modified by Danae.
 					"<font size=" + "3" + "><b><i>" + d[titleField] + "</i></b> </font>" + "<br>"  //Sets up the title font-size and special features
 					+ "<font size=" + "2" + ">" + d[techniqueIdField] + " - " + d[techniqueField] + "</font>" + "<br>" //Sets up the technique items font-size and special features.
@@ -514,19 +515,25 @@ console.log("data item", d[tacticField]);//DEBUGGING!!!
 					+ d[timeField]					//Sets up the items for the description
 					
 					)
-			.style("color", "black")
+			.style("color", "black");
+
+		var closeButton = tooltip.append("div") // Close button is regeneraed everytime the tooltip is updated. Prevents the div from being overwritten by tooltip html
+		.style("position", "absolute")
+		.style("right", "4px")
+		.style("top", "-5px")
+		.style("cursor", "pointer")
+		.attr("class", "closeButton-form")
+		.html("x")
+		.on("click", function(d) 
+		{
+			tooltip.style("display", "none"); // If the closeButton is clicked, hide the tooltip
+		});
 		
 		tooltip.style("display", "block");
-	});
-	
-	tooltip.on("click", function(d)
-	{
-		tooltip.style("display", "none");
 	});
 
 
 	bars.append("text")
-		 //.attr("class", "bar-text")
 		 .text(function(d) {
 			 return d[titleField];
 		 })
@@ -538,7 +545,7 @@ console.log("data item", d[tacticField]);//DEBUGGING!!!
 		//.style("text-anchor", "left")
 		.attr("class", "title-form") // CSS call - Created by Danae
 		//.style("font-size", "9px")
-		.style("text-align", "center")
+		//.style("text-anchor", "middle") // Want to have the text anchored in the middle. This is currently not possible with the way the cards are set up
 		.style("fill", "black");
 
 
@@ -563,8 +570,51 @@ console.log("data item", d[tacticField]);//DEBUGGING!!!
 
 	bars.append("text")
 		.text(function(d) {
-			return d[techniqueField];
+			return d[techniqueIdField] + " - " + d[techniqueField]; // Modified to have both the technique id and technique together
 		})
+		.call(function(t){ 
+
+				t.each(function(d) {
+					var self = d3.select(this);
+					var s = self.text().split(' ');
+					self.text('');
+					var lineCount = 0;
+
+					var tspan = self.append("tspan") // Appending first tspan
+						.attr("x", 0)
+						.attr("dx", cardWidth * 0.1)
+						.attr("dy", "1em");
+		
+					for (var i = 0; i < s.length; i++) {
+
+						var currentWord = s[i];
+						tspan.text(tspan.text() + " " + currentWord);
+
+						if (tspan.node().getComputedTextLength() > (cardWidth - cardWidth * 0.1)) {
+
+							tspan.text(tspan.text().slice(0, -currentWord.length)); // Remove the last word if we are greater than the cardWidth
+
+							if (lineCount < 4) {  // Checking to see if we've reached the maximum line count
+
+								tspan = self.append("tspan")
+									.attr("x", 0)
+									.attr("dx", cardWidth * 0.1)
+									.attr("dy", "1em")
+									.text(currentWord);
+							}
+
+							else {
+								tspan.text(tspan.text() + " ...");
+								break; // If the lineCount == 4, we don't want to have any more
+							}
+
+							lineCount++;
+						}
+					}
+				});
+			})
+			// Old code for splitting the techniques into one line per word
+		 /* 
 		.call(function(t){ //Code re-use of Noah's title splitter.
 			//The longest technique name in the MITRE database is "Linux and Mac File and Directory Permissions Modification"
 			t.each(function(d){
@@ -586,16 +636,17 @@ console.log("data item", d[tacticField]);//DEBUGGING!!!
 					.attr("x", 0)
 					.attr("dx", cardWidth * 0.1)
 					.attr("dy","1em")
-					.text(s[2])
+					.text(s[2]);
 				if (s[3] != undefined) {
-					self.append("tspan")
+					self.append("tspan") // Attempting to get the text on one line
 						.attr("x", 0)
 						.attr("dx", cardWidth * 0.1)
-						.attr("dy","1em")
-						.text("...");
+						.attr("dy","1em") 
+						var lastTspan = self.selectAll("tspan:last-child");
+						lastTspan.text(s[2] + " ...");
 				}
 			})
-		})
+		}) */
 		.attr("x", cardWidth / 2)
 		.attr("y", 15)
 		.attr("dx", cardWidth * 0.1) //Sets the offset of the first technique item to act as padding to 0.1 of the cardWidth - Created by Danae
@@ -605,7 +656,7 @@ console.log("data item", d[tacticField]);//DEBUGGING!!!
 		.style("fill", "black");
 
 
-//container.node().scrollTop = container.node().scrollHeight;		//	This ensures that the scrollbar starts at the bottom of the visualization
+//container.node().scrollTop = container.node().scrollHeight;		//	This ensures that the scrollbar starts at the bottom of the visualization, no longer used
 
 } // END of Tactic View
 

@@ -24,6 +24,14 @@
 	
 }
 
+.closeButton-form{
+	font-size: 18px;
+	font-family: monospace;
+	color:black;
+	font-weight: bold;
+
+}
+
 
 /*.meter-center-text {
     font-size: 40px;
