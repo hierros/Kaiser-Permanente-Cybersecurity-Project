@@ -216,9 +216,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	//Containers heights and widths to detrmine other items such as scroll-bars and placements :
 		var containerHeight = 500; // Sets height for on screen region
 		var containerWidth = 1500; // Sets width for on screen region
-		var cardHeight = 65; // Card height automatically set to 50 px. This helps determine vertical placements in columns.
+		var cardHeight = 85; // Card height automatically set to 50 px. This helps determine vertical placements in columns.
 		var barHeight = 50; // Sets the height of the bar of the x-axis on the Tactic View. 
-		var cardWidth = 85; // Card width automatically set to 70 px. This helps determine the horizontal placement.
+		var cardWidth = 105; // Card width automatically set to 70 px. This helps determine the horizontal placement.
+
+	//console.log("Card Width = 105"); //DEBUGGING!!!
+	//console.log("Card Height = 85"); //DEBUGGING!!!
 
 
 	// --- XXXX --- //
@@ -273,17 +276,18 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 		//The variable to store unqiue tactics 
 		var uniqueTactics = findUnique(tacticsArr);
-		console.log(uniqueTactics); //DEBUGGING!!!
+
+	//console.log(uniqueTactics); //DEBUGGING!!!
 
 
 		//Function to sort uniqueTactics based on the tactics array obtained from MITRE database. This sorts it in MITRE order.
 		uniqueTactics.sort(function(a, b) {
 			return tactics.indexOf(a) - tactics.indexOf(b);// Swaps the values if the result of the operation is positive, i.e. if a > b. No swap if a < b
 			});
-			
+		
 	//console.log(uniqueTactics);//DEBUGGING!!!
 
-
+	console.log("Fuk");
 
 		//Create the Container for the visualization - allows for scroll bars
 		var container = d3.select(this.el).append("div")
@@ -311,14 +315,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 		//Create the x axis associated with the view on the background
 		var x = d3.scale.ordinal()
 			.domain(uniqueTactics)
-			.rangeRoundBands([0, width], .15); //controls the size of the x-axis 
-			//.rangeRoundPoints([0, width]); //controls the size of the x-axis 
+			.rangeRoundBands([0, width]); //controls the size of the x-axis 
+			//.rangeRoundPoints([0, width] , .15); //controls the size of the x-axis 
 	 
 
-	 //cardWidth = x.rangeBand();
-	 console.log("Range band:", x.rangeBand());//DEBUGGING!!!
-	 console.log("The range:", x.range());
-	 console.log("Range band chunks:", x.rangeBand()/4);//DEBUGGING!!!
+	//cardWidth = x.rangeBand();
+	console.log("Range band:", x.rangeBand());//DEBUGGING!!!
+	console.log("The range:", x.range());
+	console.log("Range band chunks:", x.rangeBand()/4);//DEBUGGING!!!
 	 
 		//This creates the labels that go with the x axis on the background. Takes the tactic names and splits them across the "-" characters
 		chart.append("g")
@@ -347,14 +351,18 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 				})
 			})
 
+
+
 		//This is for coloring the X-axis in accordance with the Tactics. - Created by Noah.
 		var coloredBars = chart.selectAll(".coloredBars")
 			.data(uniqueTactics)
 			.enter()
 			.append('g')
 			.attr('transform', (d) => {
-				return "translate(" + (x(d) + x.rangeBand()/4 ) + "," + (barHeight - 6) + ")"; //Aligns the cards and the colored bars together. More information at the bars.append item below.
+				return "translate(" + (x(d) ) + "," + (barHeight - 6) + ")"; //Aligns the cards and the colored bars together. More information at the bars.append item below.
 				});
+
+
 
 		coloredBars.append("rect")
 			.style("opacity", 1)
@@ -408,7 +416,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 					 {
 						 return "white";
 					}
-			 });
+					
+			 })
+			 .style("opacity", 0);
 
 
 		let tacticCount = {}; //Creates an empty dictionary to hold the cards.
@@ -420,21 +430,18 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 			.append('g')
 			.attr('transform', (d) => {
 				tacticCount[d[tacticField]] = (tacticCount[d[tacticField]] || 0) + 1
-	console.log("item put into translate for x", x(d[tacticField]));//DEBUGGING!!!
-	console.log("data item", d[tacticField]);//DEBUGGING!!!
-
 				//The return statement makes the following position placements:
-				//x of the box = the placement of the tacticField as determined by the rangeRoundBands() above in the x-axis plus 1/4th of the rangeBand alloted to "center" the box.
-				//y of the box = the cardHeight * its stack placement determined by the tacticCount minus the difference between (cardHeight - barHeight) to attact the card-stack to the x-axis.
-				//- Created by Danae.
-				return "translate(" + (x(d[tacticField]) + x.rangeBand()/4 ) + "," + (cardHeight * tacticCount[d[tacticField]] - (cardHeight - barHeight)) + ")";
-	//			return "translate(" + x(d[tacticField]) + "," + (barHeight * tacticCount[d[tacticField]]) + ")"; //Base created by Noah!
+				// take the tactic field and find its placement on the x axis - this is the x position.
+				// take the cardheight * its placement in the stack to calculate the initial y 
+				//	to get the true y: subtract the (cardhight - barHeight +10) to get the y placement that doesn't stick to the x-axix but still have it related to the x-axis.
+				//	- Created by Danae
+				return "translate(" + (x(d[tacticField])) + "," + (cardHeight * tacticCount[d[tacticField]] - (cardHeight - barHeight)+10) + ")";
 			});
 
 
 		//This actually attatches the bars to the view. - Created by Noah.
 		bars.append("rect")
-			/*.style("fill", function(d) //Places color into the cards - Created by Danae.
+			.style("fill", function(d) //Places color into the cards - Created by Danae.
 			{
 				if (d[tacticField] == "credential-access")
 				{
@@ -474,7 +481,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 				{
 					 return "white";
 				}
-			})*/
+			})
 			.style("opacity", 0) //This controls the opacity of the above color which acts as the back of the card.
 			//.style("stroke", "black") //This controls the border of the cards - primarily used for debugging.
 			//.style("stroke-width", 1)
@@ -483,7 +490,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 			//.style("border-radius", "5px")
 			.attr("width", cardWidth)
 			.attr("height", cardHeight);
-			
 
 
 		//This is the tool tip to give information about the attack given the location of the item. - Created by Noah.
@@ -491,15 +497,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 			.append("div")
 			.style("opacity", 0)
 			.attr("class", "tooltip") //Makes the tooltip appear
-			//.attr("class", "tooltip-form") //Makes the CSS call and removes the tooltip entirely - Do NOT USE!
 			.style("background-color", "white")
 			.style("border", "solid")
 			.style("border-width", "1px")
 			.style("border-radius", "5px")
-			.style("width", "700px") //Added by Noah
+			.style("width", "700px") 	//Added by Noah
 			.style("padding", "10px");
 
-	/*
+	/* //Old Tooltip Code:
 		//While on the chart - track the mouse position and show the tooltip. - Created by Noah
 		chart.on("mousemove", function()
 		{
@@ -531,18 +536,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 				.style("opacity", 0);
 		});
 	*/
-		var closeButton = tooltip.append("div")
-		.style("position", "absolute")
-		.style("right", "10px")
-		.style("top", "10px")
-		.html("x")
-		.on("click", function(d) 
-		{
-			tooltip.style("display", "none");
-		});
 
-		//console.log("Close button appended:", closeButton.node());  // Was used for debuggging issues with appending the close button to the tooltip
-
+	//Created by Noah
 		bars.on("click", function(d) 
 		{
 			tooltip.transition()
@@ -550,7 +545,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 				.style("opacity", 0.9)
 				.style("left", "50px")
 				.style("top", "75px");
-
 
 			tooltip.html( //Modified by Danae.
 						"<font size=" + "3" + "><b><i>" + d[titleField] + "</i></b> </font>" + "<br>"  //Sets up the title font-size and special features
@@ -561,30 +555,27 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 						
 						)
 				.style("color", "black");
-
+				
+			//Created by Noah
 			var closeButton = tooltip.append("div")
-			.style("position", "absolute")
-			.style("right", "4px")
-			.style("top", "-5px")
-			.style("cursor", "pointer")
-			.attr("class", "closeButton-form")
-			.html("x")
-			.on("click", function(d) 
-			{
-				tooltip.style("display", "none");
-			});
-			
+				.style("position", "absolute")
+				.style("right","8px") //Modified by Danae
+				.style("top","-4px")
+				.attr("class","closeButton-form")
+				.html("x")
+				.on("click", function(d)
+				{
+					tooltip.style("display","none");
+				});
+
 			tooltip.style("display", "block");
 		});
-		/*
-		tooltip.on("click", function(d)
-		{
-			tooltip.style("display", "none");
-		}); */
+		
 
 
-
+		//Text for the Title
 		bars.append("text")
+			 //.attr("class", "bar-text")
 			 .text(function(d) {
 				 return d[titleField];
 			 })
@@ -593,36 +584,94 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 			.attr("y", 10)	//Sets the original y position to 10.
 			.attr("dx", 5)	//Sets the offset of x to 5. - Created by Danae
 			.attr("dy", 2)	//Sets the offset of y to 2. - Created by Danae
-			//.style("text-anchor", "left")
 			.attr("class", "title-form") // CSS call - Created by Danae
-			//.style("font-size", "9px")
-			//.style("text-anchor", "middle") // Want to have the text anchored in the middle. This is currently not possible with the way the cards are set up
+			.style("text-align", "center")
 			.style("fill", "black");
+			//.style("text-anchor", "left")
+			//.style("font-size", "9px")
 
 
 
-	/*	var textBars = bars.append("div")
-			.attr("x", 0)
-			.attr("y", 15)
-			.style("fill", "black")
-			.attr("class", "technique-form");
-			//.text(function(d) { return d[techniqueField]; }); // One method tried for adding text
-			textBars.html(function(d) {
-				return d[techniqueField]; // Another attempted method, uses html to append the text
-			}); */
-		// Append text to each bar container, currently commented out to attempt text wrapping
-		/*
-		textBars.append("text")
-			.attr("class", "technique-form")
-			.text(function(d) { return d[techniqueField]; });
-		*/
 
-
-
+		//Text for the technique id
 		bars.append("text")
-			.text(function(d) {
-				return d[techniqueIdField] + " - " + d[techniqueField];
-			}) /*
+			 .text(function(d) {
+				 return d[techniqueIdField];
+			 })
+			.attr("x", 0)	//Sets the original x position to 0.
+			.attr("y", 25)	//Sets the original y position to 10.
+			.attr("dx", 5)	//Sets the offset of x to 5. - Created by Danae
+			.attr("dy", 2)	//Sets the offset of y to 2. - Created by Danae
+			.attr("class", "technique-form") // CSS call - Created by Danae
+			.style("text-align", "center")
+			.style("fill", "black");
+			//.attr("x", cardWidth / 2) //Original call to place the Title data onto the top of the card.
+			//.style("text-anchor", "left")
+			//.style("font-size", "9px")
+			
+
+
+		//Text for the techniqueField - made by Noah
+		bars.append("text")
+			.text(function(d) {			
+				return d[techniqueField];
+			})
+			.attr("x", cardWidth / 2)
+			.attr("y", 35)
+			.attr("dx", cardWidth * 0.1) //Sets the offset of the first technique item to act as padding to 0.1 of the cardWidth - Created by Danae
+			.style("text-anchor", "left")
+			.attr("class","technique-form") //Applies CSS - Created by Danae.
+			.style("fill", "black")
+			.call(function(t){                
+				t.each(function(d) {
+						var self = d3.select(this);
+						var s = self.text().split(' ');
+						self.text('');
+						var lineCount = 0;
+						var tspan = self.append("tspan") // Appending first tspan
+							.attr("x", 0)
+							.attr("dx", cardWidth * 0.1)
+							.attr("dy", "1em");
+							
+							for (var i = 0; i < s.length; i++) {
+								var currentWord = s[i];
+								tspan.text(tspan.text() + " " + currentWord);
+
+								if (tspan.node().getComputedTextLength() > (cardWidth - cardWidth * 0.1)) {                            
+								
+									tspan.text(tspan.text().slice(0, -currentWord.length)); // Remove the last word if we are greater than the cardWidth                            
+									if (lineCount < 4) {  // Checking to see if we've reached the maximum line count                                
+									tspan = self.append("tspan")
+											.attr("x", 0)
+											.attr("dx", cardWidth * 0.1)
+											.attr("dy", "1em")
+											.text(currentWord);
+									}
+									else {
+										tspan.text(tspan.text() + " ...");
+										break; // If the lineCount == 4, we don't want to have any more
+									}
+									lineCount++;
+								}
+							}
+				})
+			});
+
+
+
+
+	/* //Old line by line technique splitting.
+		//Text for the techniqueField
+		bars.append("text")
+			.text(function(d) {			
+				return d[techniqueField];
+			})
+			.attr("x", cardWidth / 2)
+			.attr("y", 35)
+			.attr("dx", cardWidth * 0.1) //Sets the offset of the first technique item to act as padding to 0.1 of the cardWidth - Created by Danae
+			.style("text-anchor", "left")
+			.attr("class","technique-form") //Applies CSS - Created by Danae.
+			.style("fill", "black")
 			.call(function(t){ //Code re-use of Noah's title splitter.
 				//The longest technique name in the MITRE database is "Linux and Mac File and Directory Permissions Modification"
 				t.each(function(d){
@@ -644,66 +693,18 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 						.attr("x", 0)
 						.attr("dx", cardWidth * 0.1)
 						.attr("dy","1em")
-						.text(s[2]);
+						.text(s[2])
 					if (s[3] != undefined) {
-						self.append("tspan") // Attempting to get the text on one line
+						self.append("tspan")
 							.attr("x", 0)
 							.attr("dx", cardWidth * 0.1)
-							.attr("dy","1em") 
-							var lastTspan = self.selectAll("tspan:last-child");
-							lastTspan.text(s[2] + " ...");
+							.attr("dy","1em")
+							.text("...");
 					}
 				})
-			}) */
-			.call(function(t){ 
-
-					t.each(function(d) {
-						var self = d3.select(this);
-						var s = self.text().split(' ');
-						self.text('');
-						var lineCount = 0;
-
-						var tspan = self.append("tspan") // Appending first tspan
-							.attr("x", 0)
-							.attr("dx", cardWidth * 0.1)
-							.attr("dy", "1em");
-			
-						for (var i = 0; i < s.length; i++) {
-
-							var currentWord = s[i];
-							tspan.text(tspan.text() + " " + currentWord);
-
-							if (tspan.node().getComputedTextLength() > (cardWidth - cardWidth * 0.1)) {
-
-								tspan.text(tspan.text().slice(0, -currentWord.length)); // Remove the last word if we are greater than the cardWidth
-
-								if (lineCount < 4) {  // Checking to see if we've reached the maximum line count
-
-									tspan = self.append("tspan")
-										.attr("x", 0)
-										.attr("dx", cardWidth * 0.1)
-										.attr("dy", "1em")
-										.text(currentWord);
-								}
-
-								else {
-									tspan.text(tspan.text() + " ...");
-									break; // If the lineCount == 4, we don't want to have any more
-								}
-
-								lineCount++;
-							}
-						}
-					});
-				})
-			.attr("x", cardWidth / 2)
-			.attr("y", 15)
-			.attr("dx", cardWidth * 0.1) //Sets the offset of the first technique item to act as padding to 0.1 of the cardWidth - Created by Danae
-			.style("text-anchor", "left")
-			.attr("class","technique-form") //Applies CSS - Created by Danae.
+			});
 			//style("font-size", "9px")
-			.style("fill", "black");
-
+	*/
 
 	//container.node().scrollTop = container.node().scrollHeight;		//	This ensures that the scrollbar starts at the bottom of the visualization
 
@@ -898,12 +899,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 		//	console.log("sorted row: ", sortedData[che]);	
 		
 		
-	//console.log("cardBuild: ", cardBuild);  //DEBUGGING!!!
+	console.log("cardBuild: ");  //DEBUGGING!!!
 		
 		//Create background of the visualization
 		var container = d3.select(this.el).append("div")
 			.style("height", containerHeight + "px")
-			.style("width", containerWidth + "px")
+			.style("width", (cardWidth * chunks) + "px")
 			.style("overflow", "auto")
 			.style("position", "relative");
 		
@@ -911,7 +912,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 		//Create background of the visualization
 		var chart = container.append("svg")//d3.select(this.el)
 			//.append("svg")
-			.attr("width", width + margins.left + margins.right)
+			.attr("width", (cardWidth * chunks )+ margins.left + margins.right)
 			.attr("height", height + margins.top + margins.bottom)
 			.append("g")
 			.attr("transform",
@@ -927,7 +928,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 		//Create the x axis associated on the background
 		var x = d3.scale.ordinal()
 			.domain(chunkList)
-			.rangeRoundBands([0, width], .4);
+			.rangeRoundBands([0, (cardWidth * chunks)], .1);
 
 		//Appends the x axis onto the background  
 		chart.append("g")
@@ -946,7 +947,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 			.append('g')
 			.attr('transform', (d) => 
 			{
-				return "translate(" + x(d[6]) + "," + (height - 50 * d[7]) + ")";
+				return "translate(" + x(d[6]) + "," + (height - cardHeight * d[7]) + ")";
 			}
 		);
 		
@@ -1032,99 +1033,175 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 				})
 			.style("stroke", "black")
 			.style("stroke-width", 1)
-			.attr("width", x.rangeBand)
-			.attr("height", 50);
+			.attr("width", cardWidth)
+			.attr("height", cardHeight);
 
 
 
-		//Tool tip
+		//This is the tool tip to give information about the attack given the location of the item. - Created by Noah.
 		var tooltip = d3.select(this.el)
 			.append("div")
-			.attr("class", "tooltip")
 			.style("opacity", 0)
-			.attr("class", "tooltip")
+			.attr("class", "tooltip") //Makes the tooltip appear
 			.style("background-color", "white")
 			.style("border", "solid")
 			.style("border-width", "1px")
 			.style("border-radius", "5px")
+			.style("width", "700px") 	//Added by Noah
 			.style("padding", "10px");
 
+	/* //Old Tooltip Code:
+		//While on the chart - track the mouse position and show the tooltip. - Created by Noah
 		chart.on("mousemove", function()
 		{
 			var mousePos = d3.mouse(this);
 			
-			tooltip.style("left", + (mousePos[0]+50) + "px")
-				.style("top", + (mousePos[1]+50)+ "px");
+			tooltip.style("left", + (mousePos[0]+20) + "px") //Tightend position by Danae.
+				.style("top", + (mousePos[1]+40)+ "px");
 		});
 
+		//While the mouse is over a card the transition of the tooltip obeyes the following rools and shows the followi.
 		bars.on("mouseover", function(d) 
-		{
-			tooltip.transition()
-				.duration(200)
-				.style("opacity", 0.9);
+			{
+				tooltip.transition()
+					.duration(200)
+					.style("opacity", 0.9);
 
-			tooltip.html(d[titleField] + "<br>" + d[tacticField] + "<br>" +d[techniqueIdField] + " - " +  d[techniqueField] + "<br>" + d[descriptionField] + "<br>" + d[timeField])
-				//.style("left", (d3.event.pageX) + "px")
-				//.style("top", (d3.event.pageY - 28) + "px")
-				//.style("left", 100 + "px")
-				//.style("top", 250 + "px")
-				.style("color", "black")
-		})
+				tooltip.html(d[titleField] + "<br>"  + d[techniqueIdField]
+				 + " - " + d[techniqueField] + "<br>" + d[descriptionField] + "<br>" + d[timeField])
+					.style("color", "black")
+					//Later tests to see if multiple items can be chained together for the bold title, larger technique, and normal description
+					
+			})
 
+		//When the mouse goes off the card - turns the card off by reducing opacity.
 		.on("mouseout", function(d) 
 		{
 			tooltip.transition()
 				.duration(250)
 				.style("opacity", 0);
 		});
+	*/
+
+	//Created by Noah
+		bars.on("click", function(d) 
+		{
+			tooltip.transition()
+				.duration(200)
+				.style("opacity", 0.9)
+				.style("left", "50px")
+				.style("top", "75px");
+
+			tooltip.html( //Modified by Danae.
+						"<font size=" + "3" + "><b><i>" + d[titleField] + "</i></b> </font>" + "<br>"  //Sets up the title font-size and special features
+						+ "<font size=" + "2" + ">" + d[techniqueIdField] + " - " + d[techniqueField] + "</font>" + "<br>" //Sets up the technique items font-size and special features.
+						//+ "_______ <br>" 				// A line break of underscores.
+						+ d[descriptionField] + "<br>" 	//Sets up the items for the description
+						+ d[timeField]					//Sets up the items for the description
+						
+						)
+				.style("color", "black");
+				
+			//Created by Noah
+			var closeButton = tooltip.append("div")
+				.style("position", "absolute")
+				.style("right","8px") //Modified by Danae
+				.style("top","-4px")
+				.attr("class","closeButton-form")
+				.html("x")
+				.on("click", function(d)
+				{
+					tooltip.style("display","none");
+				});
+
+			tooltip.style("display", "block");
+		});
+		
 
 
+		//Text for the Title
 		bars.append("text")
-			.text(function(d) {
-			return d[titleField];
-			})
-			.attr("x", x.rangeBand() / 2)
-			.attr("y", 10)
-			.style("text-anchor", "middle")
-			.style("font-size", "9px")
+			 //.attr("class", "bar-text")
+			 .text(function(d) {
+				 return d[titleField];
+			 })
+	//		.attr("x", cardWidth / 2) //Original call to place the Title data onto the top of the card.
+			.attr("x", 0)	//Sets the original x position to 0.
+			.attr("y", 10)	//Sets the original y position to 10.
+			.attr("dx", 5)	//Sets the offset of x to 5. - Created by Danae
+			.attr("dy", 2)	//Sets the offset of y to 2. - Created by Danae
+			.attr("class", "title-form") // CSS call - Created by Danae
+			.style("text-align", "center")
 			.style("fill", "black");
+			//.style("text-anchor", "left")
+			//.style("font-size", "9px")
 
+
+
+
+		//Text for the technique id
 		bars.append("text")
-			.text(function(d) {
+			 .text(function(d) {
+				 return d[techniqueIdField];
+			 })
+			.attr("x", 0)	//Sets the original x position to 0.
+			.attr("y", 25)	//Sets the original y position to 10.
+			.attr("dx", 5)	//Sets the offset of x to 5. - Created by Danae
+			.attr("dy", 2)	//Sets the offset of y to 2. - Created by Danae
+			.attr("class", "technique-form") // CSS call - Created by Danae
+			.style("text-align", "center")
+			.style("fill", "black");
+			//.attr("x", cardWidth / 2) //Original call to place the Title data onto the top of the card.
+			//.style("text-anchor", "left")
+			//.style("font-size", "9px")
+			
+
+
+		//Text for the techniqueField - made by Noah
+		bars.append("text")
+			.text(function(d) {			
 				return d[techniqueField];
 			})
-			.call(function(t){
-				//The longest technique name in the MITRE database is "Linux and Mac File and Directory Permissions Modification"
-				t.each(function(d){
-					//Since this is 8 words long, we need to display up to s[7]
-					var self = d3.select(this);
-					var s = self.text().split(' ');
-					self.text('');
-					self.append("tspan")
-						.attr("x", 0)
-						.attr("dy","1em")
-						.text(s[0])
-					self.append("tspan")
-						.attr("x", 0)
-						.attr("dy","1em")
-						.text(s[1])
-					self.append("tspan")
-						.attr("x", 0)
-						.attr("dy","1em")
-						.text(s[2])
-					if (s[3] != undefined) {
-						self.append("tspan")
+			.attr("x", cardWidth / 2)
+			.attr("y", 35)
+			.attr("dx", cardWidth * 0.1) //Sets the offset of the first technique item to act as padding to 0.1 of the cardWidth - Created by Danae
+			.style("text-anchor", "left")
+			.attr("class","technique-form") //Applies CSS - Created by Danae.
+			.style("fill", "black")
+			.call(function(t){                
+				t.each(function(d) {
+						var self = d3.select(this);
+						var s = self.text().split(' ');
+						self.text('');
+						var lineCount = 0;
+						var tspan = self.append("tspan") // Appending first tspan
 							.attr("x", 0)
-							.attr("dy","1em")
-							.text("...");
-					}
+							.attr("dx", cardWidth * 0.1)
+							.attr("dy", "1em");
+							
+							for (var i = 0; i < s.length; i++) {
+								var currentWord = s[i];
+								tspan.text(tspan.text() + " " + currentWord);
+
+								if (tspan.node().getComputedTextLength() > (cardWidth - cardWidth * 0.1)) {                            
+								
+									tspan.text(tspan.text().slice(0, -currentWord.length)); // Remove the last word if we are greater than the cardWidth                            
+									if (lineCount < 4) {  // Checking to see if we've reached the maximum line count                                
+									tspan = self.append("tspan")
+											.attr("x", 0)
+											.attr("dx", cardWidth * 0.1)
+											.attr("dy", "1em")
+											.text(currentWord);
+									}
+									else {
+										tspan.text(tspan.text() + " ...");
+										break; // If the lineCount == 4, we don't want to have any more
+									}
+									lineCount++;
+								}
+							}
 				})
-			})
-			.attr("x", x.rangeBand() / 2)
-			.attr("y", 20)
-			.style("text-anchor", "middle")
-			.style("font-size", "9px")
-			.style("fill", "black");
+			});
 
 
 

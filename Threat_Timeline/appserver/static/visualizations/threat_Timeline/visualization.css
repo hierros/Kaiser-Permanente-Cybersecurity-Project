@@ -2,15 +2,11 @@
 /* CSS rules for visualization. */
 /* Created by Danae.*/
 
+/*Defines card preview items*/
 .title-form{
-	font-size: 12px;
+	font-size: 13px;
 	font-family: Arial;
 	font-weight: 500;
-}
-
-.body-form{
-	font-size: 9px;
-	font-family: Arial;
 }
 
 .technique-form{
@@ -18,12 +14,8 @@
 	font-family: Arial;
 }
 
-.tooltip-form{
-	font-size: 12px;
-	font-family: Arial;
-	
-}
 
+/*Formatter for the close button on the tooltip*/
 .closeButton-form{
 	font-size: 18px;
 	font-family: monospace;
@@ -33,15 +25,27 @@
 }
 
 
+/*Not sure if it is used - up for removal.*/
+.tooltip-form{
+	font-size: 13px;
+	font-family: Arial;
+	
+}
+
+.body-form{
+	font-size: 10px;
+	font-family: Arial;
+}
+
 /*.meter-center-text {
     font-size: 40px;
     font-weight: 200;
     font-family: "Helvetica Neue", Helvetica, sans-serif;
 }*/
  
-/* Center the main SVG in the page */
+/* Center the main SVG in the page 
 .splunk-radial-meter svg {
     display: block;
     margin: auto;
-}
+}*/
 
