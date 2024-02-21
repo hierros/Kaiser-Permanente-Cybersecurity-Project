@@ -3,7 +3,7 @@
 //Initial Design Templates by: Splunk  
 //Other Contributors: D3 - D3.js version 3.3.2, Copyright © 2012, Michael Bostock 
 //			
-// Last Updated: 2-11-2024
+// Last Updated: 2-21-2024
 // Program Purpose:
 //
 // Current Bugs:
@@ -516,6 +516,8 @@ console.log("Range band chunks:", x.rangeBand()/4);//DEBUGGING!!!
 			.style("position", "absolute")
 			.style("right","8px") //Modified by Danae
 			.style("top","-4px")
+			//.style("cursor", "default") // Choice between default and pointer cursor
+			.style("cursor", "pointer")
 			.attr("class","closeButton-form")
 			.html("x")
 			.on("click", function(d)
@@ -540,16 +542,50 @@ console.log("Range band chunks:", x.rangeBand()/4);//DEBUGGING!!!
 		.attr("dx", 5)	//Sets the offset of x to 5. - Created by Danae
 		.attr("dy", 2)	//Sets the offset of y to 2. - Created by Danae
 		.attr("class", "title-form") // CSS call - Created by Danae
-		.style("text-align", "center")
-		.style("fill", "black");
+		.style("text-anchor", "left")
+		.style("fill", "black")
 		//.style("text-anchor", "left")
 		//.style("font-size", "9px")
+		.call(function(t){                 // Adds text wrapping to the title
+			t.each(function(d) {
+					var self = d3.select(this);
+					var s = self.text().split(' ');
+					self.text('');
+					var lineCount = 0;
+					var tspan = self.append("tspan") // Appending first tspan
+						.attr("x", 0)
+						.attr("dx", cardWidth * 0.1)
+						.attr("dy", "1em");
+						
+						for (var i = 0; i < s.length; i++) {
+							var currentWord = s[i];
+							tspan.text(tspan.text() + " " + currentWord);
+
+							if (tspan.node().getComputedTextLength() > (cardWidth - cardWidth * 0.1)) {                            
+							
+								tspan.text(tspan.text().slice(0, -currentWord.length)); // Remove the last word if we are greater than the cardWidth                            
+								if (lineCount < 4) {  // Checking to see if we've reached the maximum line count                                
+								tspan = self.append("tspan")
+										.attr("x", 0)
+										.attr("dx", cardWidth * 0.1)
+										.attr("dy", "1em")
+										.text(currentWord);
+								}
+								else {
+									tspan.text(tspan.text() + " ...");
+									break; // If the lineCount == 4, we don't want to have any more
+								}
+								lineCount++;
+							}
+						}
+			})
+		});
 
 
 
 
 	//Text for the technique id
-	bars.append("text")
+	/*bars.append("text")
 		 .text(function(d) {
 			 return d[techniqueIdField];
 		 })
@@ -562,14 +598,14 @@ console.log("Range band chunks:", x.rangeBand()/4);//DEBUGGING!!!
 		.style("fill", "black");
 		//.attr("x", cardWidth / 2) //Original call to place the Title data onto the top of the card.
 		//.style("text-anchor", "left")
-		//.style("font-size", "9px")
+		//.style("font-size", "9px") */
 		
 
 
 	//Text for the techniqueField - made by Noah
 	bars.append("text")
 		.text(function(d) {			
-			return d[techniqueField];
+			return d[techniqueIdField] + " - " + d[techniqueField]; // Concatenated ID and technique together
 		})
 		.attr("x", cardWidth / 2)
 		.attr("y", 35)
@@ -1062,6 +1098,7 @@ console.log("Wark");  //DEBUGGING!!!
 			.style("position", "absolute")
 			.style("right","8px") //Modified by Danae
 			.style("top","-4px")
+			.style("cursor", "pointer") // Overrides the pointer so the text is treated as a button and not text
 			.attr("class","closeButton-form")
 			.html("x")
 			.on("click", function(d)
@@ -1086,16 +1123,50 @@ console.log("Wark");  //DEBUGGING!!!
 		.attr("dx", 5)	//Sets the offset of x to 5. - Created by Danae
 		.attr("dy", 2)	//Sets the offset of y to 2. - Created by Danae
 		.attr("class", "title-form") // CSS call - Created by Danae
-		.style("text-align", "center")
-		.style("fill", "black");
+		.style("text-anchor", "left")
+		.style("fill", "black")
 		//.style("text-anchor", "left")
 		//.style("font-size", "9px")
+		.call(function(t){                
+			t.each(function(d) {
+					var self = d3.select(this);
+					var s = self.text().split(' ');
+					self.text('');
+					var lineCount = 0;
+					var tspan = self.append("tspan") // Appending first tspan
+						.attr("x", 0)
+						.attr("dx", cardWidth * 0.1)
+						.attr("dy", "1em");
+						
+						for (var i = 0; i < s.length; i++) {
+							var currentWord = s[i];
+							tspan.text(tspan.text() + " " + currentWord);
+
+							if (tspan.node().getComputedTextLength() > (cardWidth - cardWidth * 0.1)) {                            
+							
+								tspan.text(tspan.text().slice(0, -currentWord.length)); // Remove the last word if we are greater than the cardWidth                            
+								if (lineCount < 4) {  // Checking to see if we've reached the maximum line count                                
+								tspan = self.append("tspan")
+										.attr("x", 0)
+										.attr("dx", cardWidth * 0.1)
+										.attr("dy", "1em")
+										.text(currentWord);
+								}
+								else {
+									tspan.text(tspan.text() + " ...");
+									break; // If the lineCount == 4, we don't want to have any more
+								}
+								lineCount++;
+							}
+						}
+			})
+		});
 
 
 
 
 	//Text for the technique id
-	bars.append("text")
+	/*bars.append("text")
 		 .text(function(d) {
 			 return d[techniqueIdField];
 		 })
@@ -1109,13 +1180,13 @@ console.log("Wark");  //DEBUGGING!!!
 		//.attr("x", cardWidth / 2) //Original call to place the Title data onto the top of the card.
 		//.style("text-anchor", "left")
 		//.style("font-size", "9px")
-		
+		*/
 
 
 	//Text for the techniqueField - made by Noah
 	bars.append("text")
 		.text(function(d) {			
-			return d[techniqueField];
+			return d[techniqueIdField] + " - " + d[techniqueField];
 		})
 		.attr("x", cardWidth / 2)
 		.attr("y", 35)
