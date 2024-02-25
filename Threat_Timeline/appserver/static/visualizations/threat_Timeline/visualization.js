@@ -49,7 +49,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	//Initial Design Templates by: Splunk  
 	//Other Contributors: D3 - D3.js version 3.3.2, Copyright © 2012, Michael Bostock 
 	//			
-	// Last Updated: 2-11-2024
+	// Last Updated: 2-24-2024
 	// Program Purpose:
 	//
 	// Current Bugs:
@@ -223,6 +223,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	//console.log("Card Width = 105"); //DEBUGGING!!!
 	//console.log("Card Height = 85"); //DEBUGGING!!!
 
+	console.log("Supposedly from tar");
 
 	// --- XXXX --- //
 
@@ -244,7 +245,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 		this.$el.empty();
 
 	//console.log('Time View is on - Value = ', viewTime_TF); //DEBUGGING!!!
-	//console.log('Data from Splunk:', data); //DEBUGGING!!!
 
 		var tacticsArr = []; //Array for holding the tactics that are in the data being called.
 
@@ -254,11 +254,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 			tacticsArr.push(data.rows[i][tacticField]);
 		}
 
-	//console.log('tacticField: ', tacticField); //DEBUGGING!!!
-	//console.log(tacticsArr); //DEBUGGING!!!
-
 		
-		//Tactics Names in accordance to MITRE
+		//Tactics Names in accordance to MITRE, needs to be lowercase seperated by dashes.
 		var tactics = ["reconnaissance", "resource-development", "initial-access", "execution", "persistence", "privilege-escalation", "defense-evasion", "credential-access", "discovery", "lateral-movement", "collection", "command-and-control", "exfiltration", "impact"];
 
 		//This function finds the unique tactics in the data set and returns a list of those unique tactics for use.
@@ -277,17 +274,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 		//The variable to store unqiue tactics 
 		var uniqueTactics = findUnique(tacticsArr);
 
-	//console.log(uniqueTactics); //DEBUGGING!!!
-
 
 		//Function to sort uniqueTactics based on the tactics array obtained from MITRE database. This sorts it in MITRE order.
 		uniqueTactics.sort(function(a, b) {
 			return tactics.indexOf(a) - tactics.indexOf(b);// Swaps the values if the result of the operation is positive, i.e. if a > b. No swap if a < b
 			});
 		
-	//console.log(uniqueTactics);//DEBUGGING!!!
-
-	console.log("Fuk");
 
 		//Create the Container for the visualization - allows for scroll bars
 		var container = d3.select(this.el).append("div")
@@ -319,11 +311,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 			//.rangeRoundPoints([0, width] , .15); //controls the size of the x-axis 
 	 
 
-	//cardWidth = x.rangeBand();
-	console.log("Range band:", x.rangeBand());//DEBUGGING!!!
-	console.log("The range:", x.range());
-	console.log("Range band chunks:", x.rangeBand()/4);//DEBUGGING!!!
-	 
 		//This creates the labels that go with the x axis on the background. Takes the tactic names and splits them across the "-" characters
 		chart.append("g")
 			.attr("transform", "translate(0," + barHeight + ")")
@@ -504,38 +491,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 			.style("width", "700px") 	//Added by Noah
 			.style("padding", "10px");
 
-	/* //Old Tooltip Code:
-		//While on the chart - track the mouse position and show the tooltip. - Created by Noah
-		chart.on("mousemove", function()
-		{
-			var mousePos = d3.mouse(this);
-			
-			tooltip.style("left", + (mousePos[0]+20) + "px") //Tightend position by Danae.
-				.style("top", + (mousePos[1]+40)+ "px");
-		});
-
-		//While the mouse is over a card the transition of the tooltip obeyes the following rools and shows the followi.
-		bars.on("mouseover", function(d) 
-			{
-				tooltip.transition()
-					.duration(200)
-					.style("opacity", 0.9);
-
-				tooltip.html(d[titleField] + "<br>"  + d[techniqueIdField]
-				 + " - " + d[techniqueField] + "<br>" + d[descriptionField] + "<br>" + d[timeField])
-					.style("color", "black")
-					//Later tests to see if multiple items can be chained together for the bold title, larger technique, and normal description
-					
-			})
-
-		//When the mouse goes off the card - turns the card off by reducing opacity.
-		.on("mouseout", function(d) 
-		{
-			tooltip.transition()
-				.duration(250)
-				.style("opacity", 0);
-		});
-	*/
+	//Old tooltip code was here - have removed it but I have a back up of the code if needed in the future. - Danae.
 
 	//Created by Noah
 		bars.on("click", function(d) 
@@ -549,10 +505,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 			tooltip.html( //Modified by Danae.
 						"<font size=" + "3" + "><b><i>" + d[titleField] + "</i></b> </font>" + "<br>"  //Sets up the title font-size and special features
 						+ "<font size=" + "2" + ">" + d[techniqueIdField] + " - " + d[techniqueField] + "</font>" + "<br>" //Sets up the technique items font-size and special features.
-						//+ "_______ <br>" 				// A line break of underscores.
 						+ d[descriptionField] + "<br>" 	//Sets up the items for the description
 						+ d[timeField]					//Sets up the items for the description
-						
 						)
 				.style("color", "black");
 				
@@ -561,6 +515,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 				.style("position", "absolute")
 				.style("right","8px") //Modified by Danae
 				.style("top","-4px")
+				//.style("cursor", "default")
 				.style("cursor", "pointer")
 				.attr("class","closeButton-form")
 				.html("x")
@@ -586,11 +541,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 			.attr("dx", 5)	//Sets the offset of x to 5. - Created by Danae
 			.attr("dy", 2)	//Sets the offset of y to 2. - Created by Danae
 			.attr("class", "title-form") // CSS call - Created by Danae
-			.style("text-anchor", "left")
+			.style("text-align", "center")
 			.style("fill", "black")
 			//.style("text-anchor", "left")
 			//.style("font-size", "9px")
-			.call(function(t){                
+			.call(function(t){                 // Adds text wrapping to the title
 				t.each(function(d) {
 						var self = d3.select(this);
 						var s = self.text().split(' ');
@@ -638,11 +593,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 			.attr("dx", 5)	//Sets the offset of x to 5. - Created by Danae
 			.attr("dy", 2)	//Sets the offset of y to 2. - Created by Danae
 			.attr("class", "technique-form") // CSS call - Created by Danae
-			.style("text-align", "center")
-			.style("fill", "black");
+			.style("text-anchor", "left")
+			.style("fill", "black")
 			//.attr("x", cardWidth / 2) //Original call to place the Title data onto the top of the card.
 			//.style("text-anchor", "left")
-			//.style("font-size", "9px") */
+			//.style("font-size", "9px")*/
+			
 			
 
 
@@ -692,54 +648,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 				})
 			});
 
-
-
-
-	/* //Old line by line technique splitting.
-		//Text for the techniqueField
-		bars.append("text")
-			.text(function(d) {			
-				return d[techniqueField];
-			})
-			.attr("x", cardWidth / 2)
-			.attr("y", 35)
-			.attr("dx", cardWidth * 0.1) //Sets the offset of the first technique item to act as padding to 0.1 of the cardWidth - Created by Danae
-			.style("text-anchor", "left")
-			.attr("class","technique-form") //Applies CSS - Created by Danae.
-			.style("fill", "black")
-			.call(function(t){ //Code re-use of Noah's title splitter.
-				//The longest technique name in the MITRE database is "Linux and Mac File and Directory Permissions Modification"
-				t.each(function(d){
-					//Since this is 8 words long, we need to display up to s[7]
-					var self = d3.select(this);
-					var s = self.text().split(' ');
-					self.text('');
-					self.append("tspan")
-						.attr("x", 0)
-						.attr("dx", cardWidth * 0.1) //Sets the offset of the technique that acts as padding to 0.1 of the cardWidth - Created by Danae
-						.attr("dy","1em")
-						.text(s[0])
-					self.append("tspan")
-						.attr("x", 0)
-						.attr("dx", cardWidth * 0.1) 
-						.attr("dy","1em")
-						.text(s[1])
-					self.append("tspan")
-						.attr("x", 0)
-						.attr("dx", cardWidth * 0.1)
-						.attr("dy","1em")
-						.text(s[2])
-					if (s[3] != undefined) {
-						self.append("tspan")
-							.attr("x", 0)
-							.attr("dx", cardWidth * 0.1)
-							.attr("dy","1em")
-							.text("...");
-					}
-				})
-			});
-			//style("font-size", "9px")
-	*/
 
 	//container.node().scrollTop = container.node().scrollHeight;		//	This ensures that the scrollbar starts at the bottom of the visualization
 
@@ -1142,7 +1050,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 				.style("position", "absolute")
 				.style("right","8px") //Modified by Danae
 				.style("top","-4px")
-				.style("cursor", "pointer") // Overrides the pointer so the text is treated as a button and not text
+				//.style("cursor", "default")
+				.style("cursor", "pointer")
 				.attr("class","closeButton-form")
 				.html("x")
 				.on("click", function(d)
@@ -1168,44 +1077,44 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 			.attr("dy", 2)	//Sets the offset of y to 2. - Created by Danae
 			.attr("class", "title-form") // CSS call - Created by Danae
 			.style("text-anchor", "left")
+			//.style("text-align", "center")
 			.style("fill", "black")
 			//.style("text-anchor", "left")
 			//.style("font-size", "9px")
-			.call(function(t){                
-				t.each(function(d) {
-						var self = d3.select(this);
-						var s = self.text().split(' ');
-						self.text('');
-						var lineCount = 0;
-						var tspan = self.append("tspan") // Appending first tspan
-							.attr("x", 0)
-							.attr("dx", cardWidth * 0.1)
-							.attr("dy", "1em");
-							
-							for (var i = 0; i < s.length; i++) {
-								var currentWord = s[i];
-								tspan.text(tspan.text() + " " + currentWord);
-
-								if (tspan.node().getComputedTextLength() > (cardWidth - cardWidth * 0.1)) {                            
+			.call(function(t){                 // Adds text wrapping to the title
+					t.each(function(d) {
+							var self = d3.select(this);
+							var s = self.text().split(' ');
+							self.text('');
+							var lineCount = 0;
+							var tspan = self.append("tspan") // Appending first tspan
+								.attr("x", 0)
+								.attr("dx", cardWidth * 0.1)
+								.attr("dy", "1em");
 								
-									tspan.text(tspan.text().slice(0, -currentWord.length)); // Remove the last word if we are greater than the cardWidth                            
-									if (lineCount < 4) {  // Checking to see if we've reached the maximum line count                                
-									tspan = self.append("tspan")
-											.attr("x", 0)
-											.attr("dx", cardWidth * 0.1)
-											.attr("dy", "1em")
-											.text(currentWord);
-									}
-									else {
-										tspan.text(tspan.text() + " ...");
-										break; // If the lineCount == 4, we don't want to have any more
-									}
-									lineCount++;
-								}
-							}
-				})
-			});
+								for (var i = 0; i < s.length; i++) {
+									var currentWord = s[i];
+									tspan.text(tspan.text() + " " + currentWord);
 
+									if (tspan.node().getComputedTextLength() > (cardWidth - cardWidth * 0.1)) {
+									
+										tspan.text(tspan.text().slice(0, -currentWord.length)); // Remove the last word if we are greater than the cardWidth
+										if (lineCount < 4) {  // Checking to see if we've reached the maximum line count
+										tspan = self.append("tspan")
+												.attr("x", 0)
+												.attr("dx", cardWidth * 0.1)
+												.attr("dy", "1em")
+												.text(currentWord);
+										}
+										else {
+											tspan.text(tspan.text() + " ...");
+											break; // If the lineCount == 4, we don't want to have any more
+										}
+										lineCount++;
+									}
+								}
+					})
+				});
 
 
 
