@@ -223,9 +223,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	//console.log("Card Width = 105"); //DEBUGGING!!!
 	//console.log("Card Height = 85"); //DEBUGGING!!!
 
-	console.log("Supposedly from tar");
 
-	// --- XXXX --- //
+	// --- XXXX --- TACTIC VIEW!!!//
 
 	//Start of the massive switch statement to find the view that is wanted for the information.
 	if(viewTime_TF === "No") // START of Tactic View 
@@ -563,7 +562,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 								if (tspan.node().getComputedTextLength() > (cardWidth - cardWidth * 0.1)) {                            
 								
 									tspan.text(tspan.text().slice(0, -currentWord.length)); // Remove the last word if we are greater than the cardWidth                            
-									if (lineCount < 4) {  // Checking to see if we've reached the maximum line count                                
+									if (lineCount < 1) {  // Checking to see if we've reached the maximum line count                                
 									tspan = self.append("tspan")
 											.attr("x", 0)
 											.attr("dx", cardWidth * 0.1)
@@ -601,19 +600,288 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 			
 			
 
-
 		//Text for the techniqueField - made by Noah
 		bars.append("text")
 			.text(function(d) {			
 				return d[techniqueIdField] + " - " + d[techniqueField];
 			})
-			.attr("x", cardWidth / 2)
-			.attr("y", 35)
-			.attr("dx", cardWidth * 0.1) //Sets the offset of the first technique item to act as padding to 0.1 of the cardWidth - Created by Danae
+			//.attr("x", cardWidth / 2)
+			.attr("x", cardWidth * 0.1) //Sets the offset of the first technique item to act as padding to 0.1 of the cardWidth - Created by Danae
+			.attr("y", 50)
 			.style("text-anchor", "left")
 			.attr("class","technique-form") //Applies CSS - Created by Danae.
 			.style("fill", "black")
 			.call(function(t){                
+				t.each(function(d) {
+						var self = d3.select(this);
+						var s = self.text().split(' ');
+						self.text('');
+						var lineCount = 1; //This is the starting line count.
+						var tspan = self.append("tspan") // Appending first tspan
+							.attr("x", 0)
+							.attr("dx", cardWidth * 0.1)
+							.attr("dy", "1em");
+							
+							for (var i = 0; i < s.length; i++) {
+								var currentWord = s[i];
+								tspan.text(tspan.text() + " " + currentWord);
+
+								if (tspan.node().getComputedTextLength() > (cardWidth - cardWidth * 0.1)) {                            
+									
+									tspan.text(tspan.text().slice(0, -currentWord.length)); // Remove the last word if we are greater than the cardWidth                            
+									if (lineCount < 3) {  // Checking to see if we've reached the maximum line count                                
+									tspan = self.append("tspan")
+											.attr("x", 0)
+											.attr("dx", cardWidth * 0.1)
+											.attr("dy", "1em")
+											.text(currentWord);
+									}
+									else {
+										tspan.text(tspan.text() + " ...");
+										break; // If the lineCount == 4, we don't want to have any more
+									}
+									lineCount++;
+								}
+							}
+				})
+			});
+
+
+	//container.node().scrollTop = container.node().scrollHeight;		//	This ensures that the scrollbar starts at the bottom of the visualization
+
+	} // END of Tactic View
+
+
+
+
+	// --- XXXX --- TIMELINE VIEW!!!//
+
+
+
+	// START of Timeline View of the attacks
+	else
+	{
+		//Taken in part from the tactic view made by Noah Warren above
+		//Modifications to make it into the timeline view done by Danae O'Connor
+
+		// check for data
+		if (!dataRows || dataRows.length === 0 || dataRows[0].length === 0) {
+			return this;
+		}
+
+		// Guard for empty data
+		if(data.rows.length < 1){
+			return;
+		}
+
+		// Clear the div
+		this.$el.empty();
+
+
+		//Grabs the data and then sorts the data based off of the time field to sort the time in assending order (min time to max time).
+		var sortedData;
+		sortedData = dataRows.sort(function(a,b) {return a[timeField] > b[timeField];});
+		
+	//console.log("Unsorted Array: ", dataRows); //DEBUGGING!!!
+	//console.log("Sorted Array: ", sortedData);  //DEBUGGING!!!
+
+		var TimeStampsArr = []; //Takes in the tactics of each item.
+
+		//Populates the Tactics of the given data
+		for (var i = 0; i < data.rows.length; i++) 
+		{
+			TimeStampsArr.push(dataRows[i][timeField]);
+		}
+
+	//console.log('Data from Splunk:', data); //DEBUGGING!!!
+	//console.log('Sorted data:', sortedData); //DEBUGGING!!!
+
+	//console.log("Timestamp Array: ", TimeStampsArr); //DEBUGGING!!!
+
+		//Create the minimum time from the data, the maximum time from the data, and the time difference between the two.
+		var minTime = 0;
+		var maxTime = 0;
+		var Time_Diff = 0;
+
+	//Gets the dates for min and max using the sorted data
+		minTime = new Date(sortedData[0][timeField]);
+		maxTime = new Date(sortedData[data.rows.length-1][timeField]);
+
+	 
+
+	//Gets the time difference of the minimum time and the maximum time.	
+		Time_Diff = maxTime.getTime() - minTime.getTime();
+
+	//console.log("minTime: ", minTime.getTime(), " is: ", minTime); //DEBUGGING!!!
+	//console.log("maxTime: ", maxTime.getTime(), " is: ", maxTime); //DEBUGGING!!!
+	//console.log("Time Difference ", Time_Diff); //DEBUGGING!!!
+
+	//Time chunk variable basis.	
+		var chunks = 4; //This variable helps to know how many columns to divide the data into for time periods. The default is 4 time period chunks.
+
+
+	//This if-else block statment determines the amount of columns or "chunks" needed to divide the data into. - Created by Danae.
+	// The count starts from 0 - so a chunks of 23 is actually 24 time chuncks.
+		if(Time_Diff <= 60000) //Less than or equal to a minute
+		{	
+			chunks = 59;
+		}
+		else if (Time_Diff <= 3600000) //Less than or equal to an hour
+		{
+			chunks = 59;
+		}
+		else if (Time_Diff <= 86400000) //Less than or equal to a day
+		{	
+			chunks = 23;
+		}
+		else if (Time_Diff <= 604800000) //Less than or equal to a week
+		{	
+			chunks = 6;
+		}
+		else if (Time_Diff <= 2629800000) //Less than or equal to a month
+		{
+			chunks = 3;
+		}
+		else	//Defaulted value for if none of the items work.
+		{
+			chunks = 5;
+		}
+
+
+	//console.log("Chunk var: ", chunks); //DEBUGGING!!!
+
+
+
+		//Gets the partition of times to define the boundaries of each time chunk.
+		var timePartSize = Time_Diff / chunks;
+		
+		let timeList = {};		//This is the list of time boundaries
+		let DisplayTime = {}; 	//Currently a temporary unused dictionary of the strings of the date-time
+
+		var chunkList = []; //This contains the number of chunks that are needed to sort all of the avaliable data into. This governs display.
+
+
+		chunkList.push(0); 					//This pushes the first chunk on to the pile - enables the start of sorting.
+		timeList[0] = minTime.getTime(); 	//Defines the first element of time to compare to
+		DisplayTime[0] = minTime;			//Gets the string of the first element of time.
+		
+		//Time partitioner or "chunker" - takes the times available and defines the boundry of each chunk of time to allow for sorting into chunks.
+		for (var wark = 1; wark < chunks; wark++)
+		{
+			timeList[wark] = minTime.getTime() + (timePartSize * wark); //Time boundary [x] = minTime + (Time partition * [x chunk variable])
+			DisplayTime[wark] = new Date(timeList[wark]); 				//adds in the display of the time chunks name.
+			chunkList.push(wark);										//pushes the chunk into the chunk list for x.
+		
+		}
+
+		timeList[chunks] = maxTime.getTime(); 	//Adds the final elememnt to the time chunk with the maxTime as nothing can exceed this time.
+		DisplayTime[chunks] = maxTime;			//Adds the display name of the date
+		chunkList.push(chunks);					//Adds the last variable of the chunks to the list of sorting partitions
+
+	//console.log("chunk list ", chunkList); //DEBUGGING!!!
+	//console.log("Timelist: ", timeList); //DEBUGGING!!!
+	//console.log("Display Time: ", DisplayTime); //DEBUGGING!!!
+
+
+
+	//Card building
+	let cardBuild = {};	
+		var senti = 10000; //Temp sentinel value to prevent while loop from running off
+		var Idex = 0;
+
+
+
+	//Goes through all elements sorts them into their sections of the time period defined.
+	while (Idex < data.rows.length && Idex != senti)
+	{
+		timeHold = new Date(sortedData[Idex][timeField]);
+		
+		for (var par = 0; par <= chunks; par++)
+		{	
+			//Once time for object is found - does a calculation to find its height for display as well as adjusting the count for if future items are needed to be calculated.
+			if (timeHold >= timeList[par] && timeHold <= timeList[par+1])
+			{
+				cardBuild[timeList[par]] = (cardBuild[timeList[par]] || 0 ) + 1; //Double checks if it has been added to the list and adds to the item if there is already something there.
+				sortedData[Idex][7] = cardBuild[timeList[par]];		
+				sortedData[Idex][6] = par; 
+
+			}
+		}
+		
+		Idex = Idex + 1; //Update the index value.
+	}
+
+	//console.log("organized data: ", sortedData);
+		
+
+
+		//Create background of the visualization
+		var container = d3.select(this.el).append("div")
+			.style("height", containerHeight + "px")
+			.style("width", containerWidth + "px")
+			.style("overflow", "auto")
+			.style("position", "relative");
+		
+		
+		
+		//Create background of the visualization
+		var chart = container.append("svg")
+			.attr("width", (cardWidth*chunks + cardWidth*2) + margins.left + margins.right)
+			.attr("height", height + margins.top + margins.bottom)
+			.append("g")
+			.attr("transform", "translate(" + margins.left + "," + margins.top + ")");
+
+		chart.append("rect")
+			.attr("x", -margins.left)
+			.attr("y", -margins.top)
+			.attr("width", "100%")
+			.attr("height", "100%")
+			.attr("fill", "#f4f4f4");
+
+		//Create the x axis associated on the background
+		var x = d3.scale.ordinal()
+			.domain(chunkList) 
+			.rangeRoundBands([0, (cardWidth*chunks + cardWidth*2)]);
+
+	console.log("Range band:", x.rangeBand());//DEBUGGING!!!
+	console.log("The range:", x.range());
+	console.log("cardWidth * chunk + cardWidth*2, na");
+
+		//Appends the x axis onto the background  
+		chart.append("g")
+			.attr("transform", "translate(0," + (height - 30) + ")")
+			.call(d3.svg.axis()
+				.scale(x)
+				.orient("bottom"))
+				.selectAll('.tick text')
+
+
+		var maskedBar = chart.selectAll(".maskedBar")
+			.data(chunkList)
+			.enter()
+			.append('g')
+			.attr('transform', (d) => {
+
+				return "translate(" + (x(d) - 8) + "," + (height - 30+6) + ")";
+			});
+
+		maskedBar.append("rect")
+			.style("opacity", 1)
+			.attr("width", cardWidth+100)
+			.attr("height", 30)
+			.style("fill", "#f4f4f4");
+			
+	//console.log("Changed height xd-8, height 50, height + 6");
+		
+		maskedBar.append("text")
+			.text(function(d){
+				return DisplayTime[d];
+			})
+			.attr("x", cardWidth)
+			.attr("y", 0.5)
+			.style("text-anchor", "left")
+			.style("fill", "black")
+			.call(function(t){
 				t.each(function(d) {
 						var self = d3.select(this);
 						var s = self.text().split(' ');
@@ -649,239 +917,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 			});
 
 
-	//container.node().scrollTop = container.node().scrollHeight;		//	This ensures that the scrollbar starts at the bottom of the visualization
-
-	} // END of Tactic View
-
-
-
-
-	// --- XXXX --- //
-
-
-
-	// START of Timeline View of the attacks
-	else
-	{
-		//Taken in part from the tactic view made by Noah Warren above
-		//Modifications to make it into the timeline view done by Danae O'Connor
-
-		// check for data
-		if (!dataRows || dataRows.length === 0 || dataRows[0].length === 0) {
-			return this;
-		}
-
-		// Guard for empty data
-		if(data.rows.length < 1){
-			return;
-		}
-
-		// Clear the div
-		this.$el.empty();
-
-
-		//Grabs the data and then sorts the data based off of the time field to sort the time in assending order (min time to max time).
-		var sortedData;
-		sortedData = dataRows.sort(function(a,b) {return a[timeField] > b[timeField];});
-		
-		console.log("Unsorted Array: ", dataRows); //DEBUGGING!!!
-		console.log("Sorted Array: ", sortedData);  //DEBUGGING!!!
-
-		var TimeStampsArr = []; //Takes in the tactics of each item.
-
-		//Populates the Tactics of the given data
-		for (var i = 0; i < data.rows.length; i++) 
-		{
-			TimeStampsArr.push(dataRows[i][timeField]);
-		}
-
-	//Testing data from splunk and testing the switching values of the formatter.
-	//console.log('Tactic View is on True - Value = ', viewTime_TF); //DEBUGGING!!!
-	//console.log('Data from Splunk:', data); //DEBUGGING!!!
-
-	//console.log("Timestamp Array: ", TimeStampsArr); //DEBUGGING!!!
-	//console.log("Time Field: ", timeField); //DEBUGGING!!!
-
-		//Create the minimum time from the data, the maximum time from the data, and the time difference between the two.
-		var minTime = 0;
-		var maxTime = 0;
-		var Time_Diff = 0;
-
-	//Gets the dates for min and max using the sorted data
-		minTime = new Date(sortedData[0][timeField]);
-		maxTime = new Date(sortedData[data.rows.length-1][timeField]);
-
-			
-		//Potential catch mechanism if the data doesn't sort properly.
-	/*	for(var eep = 0; eep < data.rows.length; eep++)
-		{
-			var holdsIt = new Date(timesInArr[eep])
-			
-			if (minTime > holdsIt) //If the value is smaller than the current time, make it the new smallest Time
-			{
-				minTime = holdsIt;
-				console.log("New minTime found!");
-				//break;
-			}
-			
-			if (maxTime < holdsIt) //If the value is greater than the current time, make it the new biggest time.
-			{
-				maxTime = holdsIt;
-				console.log("New maxTime found! Indx: ", eep);
-			}
-		}
-	 */
-	 
-	//console.log("minTime: ", minTime.getTime(), " is: ", minTime); //DEBUGGING!!!
-	//console.log("maxTime: ", maxTime.getTime(), " is: ", maxTime); //DEBUGGING!!!
-
-	//Gets the time difference of the minimum time and the maximum time.	
-		Time_Diff = maxTime.getTime() - minTime.getTime();
-		
-	//console.log("Time Difference ", Time_Diff); //DEBUGGING!!!
-
-	//Time chunk variable basis.	
-		var chunks = 4; //This variable helps to know how many columns to divide the data into for time periods. The default is 4 time period chunks.
-
-	//This if-else block statment determines the amount of columns or "chunks" needed to divide the data into. - Created by Danae.
-		if(Time_Diff <= 60000) //Less than or equal to a minute
-		{	
-			chunks = 60;
-		}
-		else if (Time_Diff <= 3600000) //Less than or equal to an hour
-		{
-			chunks = 60;
-		}
-		else if (Time_Diff <= 86400000) //Less than or equal to a day
-		{	
-			chunks = 24;
-		}
-		else if (Time_Diff <= 604800000) //Less than or equal to a week
-		{	
-			chunks = 7;
-		}
-		else if (Time_Diff <= 2629800000) //Less than or equal to a month
-		{
-			chunks = 4;
-		}
-		else	//Defaulted value for if none of the items work.
-		{
-			chunks = 5;
-		}
-
-
-	//console.log("Chunk var: ", chunks); //DEBUGGING!!!
-
-		//Gets the partition of times to define the boundaries of each time chunk.
-		var timePartSize = Time_Diff / chunks;
-		
-		let timeList = {};		//This is the list of time boundaries
-		let DisplayTime = {}; 	//Currently a temporary unused dictionary of the strings of the date-time
-
-		var chunkList = []; //This contains the number of chunks that are needed to sort all of the avaliable data into. This governs display.
-
-		chunkList.push(0); 					//This pushes the first chunk on to the pile - enables the start of sorting.
-		timeList[0] = minTime.getTime(); 	//Defines the first element of time to compare to
-		DisplayTime[0] = minTime;			//Gets the string of the first element of time.
-		
-		//Time partitioner or "chunker" - takes the times available and defines the boundry of each chunk of time to allow for sorting into chunks.
-		for (var wark = 1; wark < chunks; wark++)
-		{
-			timeList[wark] = minTime.getTime() + (timePartSize * wark); //Time boundary [x] = minTime + (Time partition * [x chunk variable])
-			DisplayTime[wark] = new Date(timeList[wark]); 				//adds in the display of the time chunks name.
-			chunkList.push(wark);										//pushes the chunk into the chunk list for x.
-
-	//console.log("DisplayTime ", DisplayTime[wark]); //DEBUGGING!!!
-	//console.log("Timelist at ", wark, " is: ", timeList[wark]); //DEBUGGING!!!		
-		}
-
-		timeList[chunks] = maxTime.getTime(); 	//Adds the final elememnt to the time chunk with the maxTime as nothing can exceed this time.
-		DisplayTime[chunks] = maxTime;			//Adds the display name of the date
-		chunkList.push(chunks);					//Adds the last variable of the chunks to the list of sorting partitions
-
-	//console.log("chunk list ", chunkList); //DEBUGGING!!!
-	//console.log("Timelist: ", timeList); //DEBUGGING!!!
-	//console.log("Display: ", DisplayTime); //DEBUGGING!!!
-
-	//Card building
-	let cardBuild = {};	
-		var senti = 100000; //Temp sentinel value to prevent while loop from running off
-		var Idex = 0;
-
-	//Goes through all elements sorts them into their sections of the time period defined.
-	while (Idex < data.rows.length && Idex != senti)
-	{
-		timeHold = new Date(sortedData[Idex][timeField]);
-		
-		for (var par = 0; par < chunks; par++)
-		{	
-			//console.log("Current chunking ", par); //DEBUGGING!!!
-	//Once time for object is found - does a calculation to find its height for display as well as adjusting the count for if future items are needed to be calculated.
-			if (timeHold >= timeList[par] && timeHold < timeList[par+1])
-			{
-				cardBuild[timeList[par]] = (cardBuild[timeList[par]] || 0 ) + 1;
-				sortedData[Idex][7] = cardBuild[timeList[par]];
-				sortedData[Idex][6] = par;
-			//	console.log("cardnumb: ", cardBuild[timeList[par]]); //DEBUGGING!!!
-			//	console.log("sorted column: ", sortedData[Idex][6]); //DEBUGGING!!!
-			//	console.log("Title: ", sortedData[Idex][titleField]); //DEBUGGING!!!
-			}
-
-		}
-		
-		Idex = Idex + 1; //Update the index value.
-	}
-		
-		//DEBUGGING!!!
-		//cardBuild[timeList[0]] = (cardBuild[timeList[0]] || 0) + 1;		
-		//sortedData[che][7] = cardBuild[timeList[0]];
-		//	sortedData[che][6] = 0; //time section
-
-		//	console.log("time list count: ", cardBuild[timeList[0]]);
-		//	console.log("sorted add: ", sortedData[che][6]);
-		//	console.log("sorted row: ", sortedData[che]);	
-		
-		
-	console.log("Wark");  //DEBUGGING!!!
-		
-		//Create background of the visualization
-		var container = d3.select(this.el).append("div")
-			.style("height", containerHeight + "px")
-			.style("width", (cardWidth * chunks) + "px")
-			.style("overflow", "auto")
-			.style("position", "relative");
-		
-		
-		//Create background of the visualization
-		var chart = container.append("svg")//d3.select(this.el)
-			//.append("svg")
-			.attr("width", (cardWidth * chunks )+ margins.left + margins.right)
-			.attr("height", height + margins.top + margins.bottom)
-			.append("g")
-			.attr("transform",
-				"translate(" + margins.left + "," + margins.top + ")");
-
-		chart.append("rect")
-			.attr("x", -margins.left)
-			.attr("y", -margins.top)
-			.attr("width", "100%")
-			.attr("height", "100%")
-			.attr("fill", "#f4f4f4");
-
-		//Create the x axis associated on the background
-		var x = d3.scale.ordinal()
-			.domain(chunkList)
-			.rangeRoundBands([0, (cardWidth * chunks)]);
-
-		//Appends the x axis onto the background  
-		chart.append("g")
-			.attr("transform", "translate(0," + height + ")")
-			.call(d3.svg.axis()
-				.scale(x)
-				.orient("bottom"))
-				//.selectAll('.tick text')
-
-
 
 		//Creates the "card" presentation objects via creating a "bar" and then calculating where it will show up on the visualization.
 		var bars = chart.selectAll(".bars")
@@ -890,15 +925,17 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 			.append('g')
 			.attr('transform', (d) => 
 			{
-				return "translate(" + x(d[6]) + "," + (height - cardHeight * d[7]) + ")";
+				console.log("x(d[6]):", x(d[6]));
+				return "translate(" + x(d[6]) + "," + (height-30 - cardHeight * d[7]) + ")";
 			}
 		);
-		
+
 
 		//This fills in the details of the card - primarily color, width, and height.
 		//fill in cards based on how the time relates to the dictionary list item starting with element 1 which is the smallest in the available time slot.
 		bars.append("rect")
-			.style("fill", function(d)
+			.style("fill", "#f4f4f4")
+			.style("stroke", function(d)
 				 {//Created by Danae
 					//Finds the color associated with each card.
 					if (d[tacticField] == "reconnaissance")
@@ -974,17 +1011,17 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 						 return "cyan";
 					}
 				})
-			.style("stroke", "black")
-			.style("stroke-width", 1)
+			.style("stroke-opacity", 1)
+			.style("stroke-width", 3)
 			.attr("width", cardWidth)
 			.attr("height", cardHeight);
 
-
+	console.log("Stroke opacity = 1");
 
 		//This is the tool tip to give information about the attack given the location of the item. - Created by Noah.
 		var tooltip = d3.select(this.el)
 			.append("div")
-			.style("opacity", 0)
+			.style("opacity", .5)
 			.attr("class", "tooltip") //Makes the tooltip appear
 			.style("background-color", "white")
 			.style("border", "solid")
@@ -993,38 +1030,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 			.style("width", "700px") 	//Added by Noah
 			.style("padding", "10px");
 
-	/* //Old Tooltip Code:
-		//While on the chart - track the mouse position and show the tooltip. - Created by Noah
-		chart.on("mousemove", function()
-		{
-			var mousePos = d3.mouse(this);
-			
-			tooltip.style("left", + (mousePos[0]+20) + "px") //Tightend position by Danae.
-				.style("top", + (mousePos[1]+40)+ "px");
-		});
-
-		//While the mouse is over a card the transition of the tooltip obeyes the following rools and shows the followi.
-		bars.on("mouseover", function(d) 
-			{
-				tooltip.transition()
-					.duration(200)
-					.style("opacity", 0.9);
-
-				tooltip.html(d[titleField] + "<br>"  + d[techniqueIdField]
-				 + " - " + d[techniqueField] + "<br>" + d[descriptionField] + "<br>" + d[timeField])
-					.style("color", "black")
-					//Later tests to see if multiple items can be chained together for the bold title, larger technique, and normal description
-					
-			})
-
-		//When the mouse goes off the card - turns the card off by reducing opacity.
-		.on("mouseout", function(d) 
-		{
-			tooltip.transition()
-				.duration(250)
-				.style("opacity", 0);
-		});
-	*/
 
 	//Created by Noah
 		bars.on("click", function(d) 
@@ -1070,15 +1075,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 			 .text(function(d) {
 				 return d[titleField];
 			 })
-	//		.attr("x", cardWidth / 2) //Original call to place the Title data onto the top of the card.
 			.attr("x", 0)	//Sets the original x position to 0.
 			.attr("y", 10)	//Sets the original y position to 10.
 			.attr("dx", 5)	//Sets the offset of x to 5. - Created by Danae
 			.attr("dy", 2)	//Sets the offset of y to 2. - Created by Danae
 			.attr("class", "title-form") // CSS call - Created by Danae
 			.style("text-anchor", "left")
-			//.style("text-align", "center")
 			.style("fill", "black")
+			//.style("text-align", "center")
 			//.style("text-anchor", "left")
 			//.style("font-size", "9px")
 			.call(function(t){                 // Adds text wrapping to the title
@@ -1099,8 +1103,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 									if (tspan.node().getComputedTextLength() > (cardWidth - cardWidth * 0.1)) {
 									
 										tspan.text(tspan.text().slice(0, -currentWord.length)); // Remove the last word if we are greater than the cardWidth
-										if (lineCount < 4) {  // Checking to see if we've reached the maximum line count
-										tspan = self.append("tspan")
+										if (lineCount < 2) {  // Checking to see if we've reached the maximum line count
+											tspan = self.append("tspan")
 												.attr("x", 0)
 												.attr("dx", cardWidth * 0.1)
 												.attr("dy", "1em")
@@ -1118,22 +1122,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 
-		//Text for the technique id
-		/*bars.append("text")
-			 .text(function(d) {
-				 return d[techniqueIdField];
-			 })
-			.attr("x", 0)	//Sets the original x position to 0.
-			.attr("y", 25)	//Sets the original y position to 10.
-			.attr("dx", 5)	//Sets the offset of x to 5. - Created by Danae
-			.attr("dy", 2)	//Sets the offset of y to 2. - Created by Danae
-			.attr("class", "technique-form") // CSS call - Created by Danae
-			.style("text-align", "center")
-			.style("fill", "black");
-			//.attr("x", cardWidth / 2) //Original call to place the Title data onto the top of the card.
-			//.style("text-anchor", "left")
-			//.style("font-size", "9px")
-			*/
+	console.log("Updated tech spacing");
 
 
 		//Text for the techniqueField - made by Noah
@@ -1141,9 +1130,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 			.text(function(d) {			
 				return d[techniqueIdField] + " - " + d[techniqueField];
 			})
-			.attr("x", cardWidth / 2)
-			.attr("y", 35)
-			.attr("dx", cardWidth * 0.1) //Sets the offset of the first technique item to act as padding to 0.1 of the cardWidth - Created by Danae
+			//.attr("x", cardWidth / 2)
+			.attr("x", cardWidth * 0.1) //Sets the offset of the first technique item to act as padding to 0.1 of the cardWidth - Created by Danae
+			.attr("y", 50)
 			.style("text-anchor", "left")
 			.attr("class","technique-form") //Applies CSS - Created by Danae.
 			.style("fill", "black")
@@ -1152,7 +1141,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 						var self = d3.select(this);
 						var s = self.text().split(' ');
 						self.text('');
-						var lineCount = 0;
+						var lineCount = 1; //This is the starting line count.
 						var tspan = self.append("tspan") // Appending first tspan
 							.attr("x", 0)
 							.attr("dx", cardWidth * 0.1)
@@ -1163,9 +1152,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 								tspan.text(tspan.text() + " " + currentWord);
 
 								if (tspan.node().getComputedTextLength() > (cardWidth - cardWidth * 0.1)) {                            
-								
+									
 									tspan.text(tspan.text().slice(0, -currentWord.length)); // Remove the last word if we are greater than the cardWidth                            
-									if (lineCount < 4) {  // Checking to see if we've reached the maximum line count                                
+									if (lineCount < 3) {  // Checking to see if we've reached the maximum line count                                
 									tspan = self.append("tspan")
 											.attr("x", 0)
 											.attr("dx", cardWidth * 0.1)
@@ -1181,7 +1170,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 							}
 				})
 			});
-
 
 
 	container.node().scrollTop = container.node().scrollHeight;		//	This ensures that the scrollbar starts at the bottom of the visualization

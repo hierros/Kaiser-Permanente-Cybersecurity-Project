@@ -4,7 +4,7 @@
 <form class="splunk-formatter-section" section-label="View Control">
     <!-- Asks the user if they want to swap to the timeline view with a Yes/No radio button input. Yes swaps to timeline view, default is No. -->
 
-	<splunk-control-group label="Timeline View?">
+	<splunk-control-group label="Go to Timeline View?">
 	
 		<splunk-radio-input name="{{VIZ_NAMESPACE}}.viewTime_TF" value ="No">
 			<option value="Yes"> Yes </option>
@@ -25,7 +25,7 @@
 
 	<splunk-control-group label="Credential Access:">
 		<splunk-color-picker name="{{VIZ_NAMESPACE}}.CredAccess_Color" value = "#ff9595">
-			<splunk-color></splunk-color>
+			<splunk-color>#ff9595</splunk-color>
 		</splunk-color-picker>
 	</splunk-control-group>
 
