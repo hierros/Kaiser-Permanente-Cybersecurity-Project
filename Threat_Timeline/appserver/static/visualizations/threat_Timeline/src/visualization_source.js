@@ -10,6 +10,8 @@
 //
 */
 
+const { format } = require("d3");
+
 //Noah Warren's contributions:
 /*
 	Primary source of the d3 visualization infrastructure.
@@ -211,11 +213,11 @@ if(viewTime_TF === "No") // START of Tactic View
 	
 	//Tactics Names in accordance to MITRE, needs to be lowercase seperated by dashes.
 	var tactics = ["reconnaissance", "resource-development", "initial-access", "execution", "persistence", "privilege-escalation", "defense-evasion", "credential-access", "discovery", "lateral-movement", "collection", "command-and-control", "exfiltration", "impact"];
-
+	var capitalizedTactics = ["Reconnaissance", "Resource Development", "Initial Access", "Execution", "Persistence", "Privilege Escalation", "Defense Evasion", "Credential Access", "Discovery", "Lateral Movement", "Collection", "Command and Control", "Exfiltration", "Impact"]
 	//This function finds the unique tactics in the data set and returns a list of those unique tactics for use.
 	//Created by Noah
 	function findUnique(arr) {
-		var uniqueTactics = [];
+		var uniqueTactics = []; 
 		for (var i = 0; i < arr.length; i++) {
 			if (uniqueTactics.indexOf(arr[i]) === -1)
 				{// If indexOf returns -1, then there is no index for that value and it's not in the array yet.
@@ -225,15 +227,54 @@ if(viewTime_TF === "No") // START of Tactic View
 		return uniqueTactics;
 	}
 
-	//The variable to store unqiue tactics 
+	//The variable to store unique tactics 
 	var uniqueTactics = findUnique(tacticsArr);
+	// Function used to format the tactics in a given dataset into an upper-case split by spaces format
+	// Created by Noah
+	function formatTactic(tactic) {
+		var formattedTactic = ''; // Empty string to store the formatted tactic
+		var words = tactic.split('-'); // Try splitting on dashes
+		
+		if(words.length == 1) { // If the length is 1, the tactic didn't get properly split on dashes, so they are seperated by spaces
+			words = tactic.split(' '); // Try splitting on spaces
+		}
 
+		for(var i = 0; i < words.length; i++) {
+
+			var word = words[i].charAt(0).toUpperCase() + words[i].slice(1); // Capitalizes the first character of each word before re-combining it with the rest of the word
+			if (word == "And") { // Handling the special case where you don't want to capitalize "and" for "Command and Control"
+				word = "and";
+			}
+
+			formattedTactic += word // Adding the now capitalized word to the formatted tactic
+
+			if (i != words.length - 1) { // Assuming this isn't the last word, we want a space between words
+				formattedTactic += ' ';
+			}
+		}
+
+		return formattedTactic; // Return the newly formatted tactic
+	}
+
+	var formattedTactics = []; // Buffer to store the newly formatted tactics
+
+	for (var i = 0; i < uniqueTactics.length; i++) { // Formatting the uniqueTactics array used as the domain
+		formattedTactics.push(formatTactic(uniqueTactics[i])); 
+	}
+
+	for(var i = 0; i < data.rows.length; i++) { // Runs the formatter on every tactic in the current dataset
+		data.rows[i][tacticField] = formatTactic(data.rows[i][tacticField]);
+	}
+
+
+	console.log(uniqueTactics);
+	console.log(formattedTactics); // testing if the formatting was done correctly
 
 	//Function to sort uniqueTactics based on the tactics array obtained from MITRE database. This sorts it in MITRE order.
-	uniqueTactics.sort(function(a, b) {
-		return tactics.indexOf(a) - tactics.indexOf(b);// Swaps the values if the result of the operation is positive, i.e. if a > b. No swap if a < b
+	formattedTactics.sort(function(a, b) {
+		return capitalizedTactics.indexOf(a) - capitalizedTactics.indexOf(b); // Swaps the values if the result of the operation is positive, i.e. if a > b. No swap if a < b
 		});
-	
+	console.log(formattedTactics);
 
 	//Create the Container for the visualization - allows for scroll bars
 	var container = d3.select(this.el).append("div")
@@ -260,7 +301,7 @@ if(viewTime_TF === "No") // START of Tactic View
 
 	//Create the x axis associated with the view on the background
 	var x = d3.scale.ordinal()
-		.domain(uniqueTactics)
+		.domain(formattedTactics)
 		.rangeRoundBands([0, width]); //controls the size of the x-axis 
 		//.rangeRoundPoints([0, width] , .15); //controls the size of the x-axis 
  
@@ -275,7 +316,7 @@ if(viewTime_TF === "No") // START of Tactic View
 		.call(function(t){
 			t.each(function(d){
 				var self = d3.select(this);
-				var s = self.text().split("-"); //This splits the titles of the area on the spaces associated with them 
+				var s = self.text().split(" "); //This splits the titles of the area on the spaces associated with them 
 				self.text('');
 				self.append("tspan")
 					.attr("x", 0)
@@ -363,7 +404,7 @@ if(viewTime_TF === "No") // START of Tactic View
 
 
 	let tacticCount = {}; //Creates an empty dictionary to hold the cards.
-
+	console.log(dataRows);
 	//Creates the cards/bar's associated with tactics and adjusts their heights in accordance to the available information. - Created by Noah.
 	var bars = chart.selectAll(".bars")
 		.data(dataRows)
