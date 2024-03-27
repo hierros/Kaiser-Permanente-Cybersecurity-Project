@@ -32,6 +32,9 @@
 */
 
 
+const { format } = require("d3");
+
+
 //Define the libraries for calls between Splunk and other libraries.
 define([
 	'jquery',
@@ -160,7 +163,7 @@ updateView: function(data, config) {
 	var Impact_Color = config[this.getPropertyNamespaceInfo().propertyNamespace+ 'Impact_Color'] || "#c71818";//impact color.
 	
 
-
+	var BackGrnd_Color = "#ffffff"; // Color of the Background of the visualization.
 
 // Set height and width for the display canvas.
 	var margins = { top: 10, right: 10, bottom: 60, left: 10 }; // Define margins
@@ -171,9 +174,9 @@ updateView: function(data, config) {
 //Containers heights and widths to detrmine other items such as scroll-bars and placements :
 	var containerHeight = 500; // Sets height for on screen region
 	var containerWidth = 1500; // Sets width for on screen region
-	var cardHeight = 85; // Card height automatically set to 50 px. This helps determine vertical placements in columns.
+	var cardHeight = 100; // Card height automatically set to 50 px. This helps determine vertical placements in columns.
 	var barHeight = 50; // Sets the height of the bar of the x-axis on the Tactic View. 
-	var cardWidth = 105; // Card width automatically set to 70 px. This helps determine the horizontal placement.
+	var cardWidth = 115; // Card width automatically set to 70 px. This helps determine the horizontal placement.
 
 //console.log("Card Width = 105"); //DEBUGGING!!!
 //console.log("Card Height = 85"); //DEBUGGING!!!
@@ -211,7 +214,7 @@ if(viewTime_TF === "No") // START of Tactic View
 	
 	//Tactics Names in accordance to MITRE, needs to be lowercase seperated by dashes.
 	var tactics = ["reconnaissance", "resource-development", "initial-access", "execution", "persistence", "privilege-escalation", "defense-evasion", "credential-access", "discovery", "lateral-movement", "collection", "command-and-control", "exfiltration", "impact"];
-
+	var capitalizedTactics = ["Reconnaissance", "Resource Development", "Initial Access", "Execution", "Persistence", "Privilege Escalation", "Defense Evasion", "Credential Access", "Discovery", "Lateral Movement", "Collection", "Command and Control", "Exfiltration", "Impact"];
 	//This function finds the unique tactics in the data set and returns a list of those unique tactics for use.
 	//Created by Noah
 	function findUnique(arr) {
@@ -228,12 +231,57 @@ if(viewTime_TF === "No") // START of Tactic View
 	//The variable to store unqiue tactics 
 	var uniqueTactics = findUnique(tacticsArr);
 
+	function formatTactic(tactic) {
+		var formattedTactic = ''; // Empty string to store the formatted tactic
+		var words = tactic.split('-'); // Try splitting on dashes
+		
+		if(words.length == 1) { // If the length is 1, the tactic didn't get properly split on dashes, so they are seperated by spaces
+			words = tactic.split(' '); // Try splitting on spaces
+		}
+
+		for(var i = 0; i < words.length; i++) {
+
+			var word = words[i].charAt(0).toUpperCase() + words[i].slice(1); // Capitalizes the first character of each word before re-combining it with the rest of the word
+			if (word == "And") { // Handling the special case where you don't want to capitalize "and" for "Command and Control"
+				word = "and";
+			}
+
+			formattedTactic += word // Adding the now capitalized word to the formatted tactic
+
+			if (i != words.length - 1) { // Assuming this isn't the last word, we want a space between words
+				formattedTactic += ' ';
+			}
+		}
+
+		return formattedTactic; // Return the newly formatted tactic
+	}
+
+	var formattedTactics = []; // Buffer to store the newly formatted tactics
+
+	for (var i = 0; i < uniqueTactics.length; i++) { // Formatting the uniqueTactics array used as the domain
+		formattedTactics.push(formatTactic(uniqueTactics[i])); 
+	}
+
+	for(var i = 0; i < data.rows.length; i++) { // Runs the formatter on every tactic in the current dataset
+		data.rows[i][tacticField] = formatTactic(data.rows[i][tacticField]);
+	}
+
+
+	console.log(uniqueTactics);
+	console.log(formattedTactics); // testing if the formatting was done correctly
+
 
 	//Function to sort uniqueTactics based on the tactics array obtained from MITRE database. This sorts it in MITRE order.
-	uniqueTactics.sort(function(a, b) {
-		return tactics.indexOf(a) - tactics.indexOf(b);// Swaps the values if the result of the operation is positive, i.e. if a > b. No swap if a < b
-		});
+	//uniqueTactics.sort(function(a, b) {
+	//	return tactics.indexOf(a) - tactics.indexOf(b);// Swaps the values if the result of the operation is positive, i.e. if a > b. No swap if a < b
+	//	});
 	
+	formattedTactics.sort(function(a, b) {
+		return capitalizedTactics.indexOf(a) - capitalizedTactics.indexOf(b); // Swaps the values if the result of the operation is positive, i.e. if a > b. No swap if a < b
+		});
+	console.log(formattedTactics);
+
+
 
 	//Create the Container for the visualization - allows for scroll bars
 	var container = d3.select(this.el).append("div")
@@ -256,11 +304,13 @@ if(viewTime_TF === "No") // START of Tactic View
 		.attr("y", -margins.top)
 		.attr("width", "100%")
 		.attr("height", "100%")
-		.attr("fill", "#f4f4f4");
+		.attr("fill", BackGrnd_Color);
+		//.attr("fill", "#f4f4f4");
 
 	//Create the x axis associated with the view on the background
 	var x = d3.scale.ordinal()
-		.domain(uniqueTactics)
+		.domain(formattedTactics)
+//		.domain(uniqueTactics)
 		.rangeRoundBands([0, width]); //controls the size of the x-axis 
 		//.rangeRoundPoints([0, width] , .15); //controls the size of the x-axis 
  
@@ -275,7 +325,7 @@ if(viewTime_TF === "No") // START of Tactic View
 		.call(function(t){
 			t.each(function(d){
 				var self = d3.select(this);
-				var s = self.text().split("-"); //This splits the titles of the area on the spaces associated with them 
+				var s = self.text().split(" "); //This splits the titles of the area on the spaces associated with them 
 				self.text('');
 				self.append("tspan")
 					.attr("x", 0)
@@ -363,7 +413,7 @@ if(viewTime_TF === "No") // START of Tactic View
 
 
 	let tacticCount = {}; //Creates an empty dictionary to hold the cards.
-
+	console.log(dataRows);
 	//Creates the cards/bar's associated with tactics and adjusts their heights in accordance to the available information. - Created by Noah.
 	var bars = chart.selectAll(".bars")
 		.data(dataRows)
@@ -424,11 +474,11 @@ if(viewTime_TF === "No") // START of Tactic View
 			}
 		})
 		.style("opacity", 0) //This controls the opacity of the above color which acts as the back of the card.
-		//.style("stroke", "black") //This controls the border of the cards - primarily used for debugging.
-		//.style("stroke-width", 1)
-		//.style("border", "solid")
-		//.style("border-width", "1px")
-		//.style("border-radius", "5px")
+		.style("stroke", "black") //This controls the border of the cards - primarily used for debugging.
+		.style("stroke-width", 1)
+		.style("border", "solid")
+		.style("border-width", "1px")
+		.style("border-radius", "5px")
 		.attr("width", cardWidth)
 		.attr("height", cardHeight);
 
@@ -552,7 +602,7 @@ if(viewTime_TF === "No") // START of Tactic View
 		//.attr("x", cardWidth / 2) //Original call to place the Title data onto the top of the card.
 		//.style("text-anchor", "left")
 		//.style("font-size", "9px")*/
-		
+	
 		
 
 	//Text for the techniqueField - made by Noah
@@ -791,7 +841,8 @@ while (Idex < data.rows.length && Idex != senti)
 		.attr("y", -margins.top)
 		.attr("width", "100%")
 		.attr("height", "100%")
-		.attr("fill", "#f4f4f4");
+		.attr("fill", BackGrnd_Color);
+		//.attr("fill", "#f4f4f4");
 
 	//Create the x axis associated on the background
 	var x = d3.scale.ordinal()
@@ -824,7 +875,8 @@ console.log("cardWidth * chunk + cardWidth*2, na");
 		.style("opacity", 1)
 		.attr("width", cardWidth+100)
 		.attr("height", 30)
-		.style("fill", "#f4f4f4");
+		.style("fill", BackGrnd_Color);
+		//.style("fill", "#f4f4f4");
 		
 //console.log("Changed height xd-8, height 50, height + 6");
 	
@@ -889,7 +941,8 @@ console.log("cardWidth * chunk + cardWidth*2, na");
 	//This fills in the details of the card - primarily color, width, and height.
 	//fill in cards based on how the time relates to the dictionary list item starting with element 1 which is the smallest in the available time slot.
 	bars.append("rect")
-		.style("fill", "#f4f4f4")
+		.style("fill", BackGrnd_Color)
+		//.style("fill", "#f4f4f4")
 		.style("stroke", function(d)
 			 {//Created by Danae
 				//Finds the color associated with each card.
