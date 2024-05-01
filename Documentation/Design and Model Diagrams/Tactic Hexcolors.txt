@@ -1,0 +1,14 @@
+#f9e98e	- pale yellow 	- Reconnaissance
+#ffd060	- calm yellow 	- Resource Development
+#ffc336	- golden yellow - Initial Access
+#ff9946	- pale orange 	- Execution
+#f28123	- orange 		- Persistence
+#e06e11	- dark orange 	- Privilege Escalation
+#d1580d	- dark red orange 	- Defense Evasion
+#ff9595	- pale pink 	- Credential Access
+#ff6e6b	- light pink 	- Discovery
+#ff5753	- pink 			- Lateral Movement
+#fe3e39	- dark pink 	- Collection
+#fc0607	- red 			- Command and Control
+#db0202	- crimson 		- Exfiltration
+#c71818	- dark red 		- Impact
