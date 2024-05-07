@@ -36,7 +36,7 @@ This subfolder contains information related to meetings. Summaries of all meetin
 This subfolder contains old versions of the requirements and instructions documents that are not currently in use.  
 
 #### **Reference Data -** 
-This subfolder contains cyberattack data used for testing purposes, as well as spreadsheet versions of the MITRE ATT&CK database.  
+This subfolder contains cyberattack data used for testing purposes, as well as spreadsheet versions of the MITRE ATT&CK® database.  
 
 #### **Testing Items -** 
 This subfolder contains items from user testing, including testing results and instructions.
@@ -45,6 +45,8 @@ This subfolder contains items from user testing, including testing results and i
 ### **Old App Versions Folder -**
 This folder contains older versions of the application, should you need to review them.  
 
+### **Presentation Items Folder -**  
+This folder contains items related to presentations given during the fall and spring semesters, including PowerPoint slides and poster designs.
 
 ### **Threat Timeline -** 
 This folder contains the source code for the visualization itself. The zip folder contains the same code.
@@ -53,7 +55,7 @@ This folder contains the source code for the visualization itself. The zip folde
 This is the application in a format that can be given directly to Splunk® Enterprise for installation.
 
 ## Intended Users  
-This product is intended to be used by those with a cybersecurity background who have experience with Splunk Enterprise to display threats captured by an external system. Since this product does not capture data itself, the user must have access to pre-captured data in order to utilize the visualization.
+This product is intended to be used by those with a cybersecurity background who have experience with Splunk® Enterprise to display threats captured by an external system. Since this product does not capture data itself, the user must have access to pre-captured data in order to utilize the visualization.
 
 ## Original Authors
 **Noah Warren - noahwarren118@gmail.com**  
@@ -67,11 +69,11 @@ This product utilizes D3.js version 3.1.4 in order to create the custom visualiz
 This application also utilizes node package manager (npm). In order to modify the product, you will need to install npm. It is recommended to do this through the use of node version manger (nvm). If you need help installing nvm, a link to the GitHub page has been provided below under "Resources."
 
 ## Safety  
-All data presented within the visualization will be provided by the user via Splunk Enterprise. This visualization is designed to work specifically with cyberattacks that are defined within the MITRE ATT&CK database. The data presented in the visualization is not duplicated or shared in any way. With this in mind, please use this product wisely and do not share confidential data with any non-authorized parties.
+All data presented within the visualization will be provided by the user via Splunk® Enterprise. This visualization is designed to work specifically with cyberattacks that are defined within the MITRE ATT&CK® database. The data presented in the visualization is not duplicated or shared in any way. With this in mind, please use this product wisely and do not share confidential data with any non-authorized parties.
 
 ## Resources
-- [Splunk Custom Visualization Tutorial](https://docs.splunk.com/Documentation/SplunkCloud/9.1.2312/AdvancedDev/CustomVizTutorial)  
+- [Splunk® Custom Visualization Tutorial](https://docs.splunk.com/Documentation/SplunkCloud/9.1.2312/AdvancedDev/CustomVizTutorial)  
 - [MITRE ATT&CK® Enterprise Matrix](https://attack.mitre.org/matrices/enterprise/)  
 - [D3.js](https://d3js.org/)  
-- [Information on D3.js for Splunk ](https://docs.splunk.com/Documentation/ContentPackApp/2.1.0/ReleaseNotes/D3)  
+- [Information on D3.js for Splunk® ](https://docs.splunk.com/Documentation/ContentPackApp/2.1.0/ReleaseNotes/D3)  
 - [Node Version Manager (nvm)](https://github.com/nvm-sh/nvm)
